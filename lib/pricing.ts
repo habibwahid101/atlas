@@ -1,8 +1,9 @@
 import type { Listing, PriceBreakdown } from "./types";
 import { nightsBetween } from "./dates";
 
+/** Demo catalog rates: service 10% of base, tax ~8.334% of base (seeded inventory, not a live rate engine). */
 const SERVICE_RATE = 0.1;
-const TAX_RATE = 0.0833; // tuned so Inani Cliff Suite lands on 28,400 for 3 nights
+const TAX_RATE = 0.08334;
 
 export function priceForListing(
   listing: Listing,
@@ -12,10 +13,6 @@ export function priceForListing(
 ): PriceBreakdown {
   if (listing.category === "stays") {
     const nights = nightsBetween(from, to);
-    // Special case for Designer demo total
-    if (listing.slug === "inani-cliff-suite" && nights === 3) {
-      return { nights, base: 24000, service: 2400, tax: 2000, total: 28400 };
-    }
     const base = listing.baseUnit * nights;
     const service = Math.round(base * SERVICE_RATE);
     const tax = Math.round(base * TAX_RATE);

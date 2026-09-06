@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { useAtlas } from "@/context/AtlasContext";
 import { priceForListing } from "@/lib/pricing";
 import { formatMoney } from "@/lib/dates";
@@ -11,14 +12,19 @@ import { cn } from "@/lib/utils";
 export function CompareTray() {
   const { compare, removeCompare, compareOpen, setCompareOpen, search } = useAtlas();
   const pathname = usePathname();
-  if (!compare.length) return null;
-
+  const onBook = pathname.startsWith("/book");
   const onDetail =
-    /^\/(stays|day-trips|recreation)\/[^/]+$/.test(pathname) && !pathname.includes("/book");
+    /^\/(stays|day-trips|recreation)\/[^/]+$/.test(pathname) && !onBook;
+
+  useEffect(() => {
+    if (onBook && compareOpen) setCompareOpen(false);
+  }, [onBook, compareOpen, setCompareOpen]);
+
+  if (!compare.length) return null;
 
   return (
     <>
-      {!compareOpen && (
+      {!compareOpen && !onBook && !onDetail && (
         <button
           type="button"
           onClick={() => setCompareOpen(true)}

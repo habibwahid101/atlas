@@ -26,6 +26,14 @@ export default function BookClient({ category, slug }: { category: Category; slu
   const [tin, setTin] = useState("");
   const [method, setMethod] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  function clearError(key: string) {
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
 
   const price = useMemo(() => {
     if (!listing) return null;
@@ -88,8 +96,6 @@ export default function BookClient({ category, slug }: { category: Category; slu
     router.push(`/bookings/${id}`);
   }
 
-  const canPay = Boolean(method) && validateSilent();
-
   function validateSilent() {
     if (!name.trim() || !email.includes("@") || mobile.replace(/\D/g, "").length < 10) return false;
     if (corporate && (!company.trim() || !billingEmail.includes("@"))) return false;
@@ -131,22 +137,22 @@ export default function BookClient({ category, slug }: { category: Category; slu
             {step === 2 && (
               <div className="mt-4 space-y-3">
                 <AudienceChip label={search.audience} />
-                <Field label="Full name" value={name} onChange={setName} error={errors.name} placeholder="Enter full name." />
-                <Field label={corporate ? "Work email" : "Email"} value={email} onChange={setEmail} error={errors.email} placeholder="Enter email address." />
+                <Field label="Full name" value={name} onChange={setName} error={errors.name} errorKey="name" clearError={clearError} placeholder="Enter full name." />
+                <Field label={corporate ? "Work email" : "Email"} value={email} onChange={setEmail} error={errors.email} errorKey="email" clearError={clearError} placeholder="Enter email address." />
                 <div>
                   <label className="text-sm font-medium">Mobile (+880)</label>
                   <div className="mt-1 flex gap-2">
                     <span className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-3 text-sm text-coral">+880</span>
-                    <input className="min-h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="Enter mobile number." />
+                    <input className="min-h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm" value={mobile} onChange={(e) => { setMobile(e.target.value); clearError("mobile"); }} placeholder="Enter mobile number." />
                   </div>
                   {errors.mobile && <p className="mt-1 text-xs text-coral">{errors.mobile}</p>}
                 </div>
                 {corporate && (
                   <div className="rounded-xl border border-slate-100 bg-sand-50 p-3">
                     <p className="mb-3 text-sm font-semibold">Company details</p>
-                    <Field label="Company name" value={company} onChange={setCompany} error={errors.company} placeholder="Enter company name." />
-                    <Field label="Billing email" value={billingEmail} onChange={setBillingEmail} error={errors.billingEmail} placeholder="Enter billing email." />
-                    <Field label="TIN / VAT" value={tin} onChange={setTin} placeholder="Enter TIN / VAT (optional)." />
+                    <Field label="Company name" value={company} onChange={setCompany} error={errors.company} errorKey="company" clearError={clearError} placeholder="Enter company name." />
+                    <Field label="Billing email" value={billingEmail} onChange={setBillingEmail} error={errors.billingEmail} errorKey="billingEmail" clearError={clearError} placeholder="Enter billing email." />
+                    <Field label="TIN / VAT" value={tin} onChange={setTin} errorKey="tin" clearError={clearError} placeholder="Enter TIN / VAT (optional)." />
                     <p className="mt-2 text-xs text-slate-500">Please ensure all details are accurate. This information will be used for invoicing.</p>
                   </div>
                 )}
@@ -245,12 +251,16 @@ function Field({
   value,
   onChange,
   error,
+  errorKey,
+  clearError,
   placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   error?: string;
+  errorKey: string;
+  clearError: (key: string) => void;
   placeholder?: string;
 }) {
   return (
@@ -259,10 +269,13 @@ function Field({
       <input
         className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value);
+          clearError(errorKey);
+        }}
         placeholder={placeholder}
       />
-      {error && <p className="mt-1 text-xs text-coral">{error}</p>}
+      {error ? <p className="mt-1 text-xs text-coral">{error}</p> : null}
     </div>
   );
 }

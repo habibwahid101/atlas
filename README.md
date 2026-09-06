@@ -56,3 +56,8 @@ Flights, packages, host chat, loyalty, map-first browse, real payments, admin/ve
 ## Brand
 
 Working name ATLAS — keep tokenizable for rename.
+
+
+## Pricing note
+
+Catalog prices are **seeded demo rates** (nightly/person base + fixed service/tax percentages). This is not a live rate engine or availability system.
