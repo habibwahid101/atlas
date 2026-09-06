@@ -24,12 +24,12 @@ export function CompareTray() {
 
   return (
     <>
-      {!compareOpen && !onBook && !onDetail && (
+      {!compareOpen && !onBook && (
         <button
           type="button"
           onClick={() => setCompareOpen(true)}
           className={cn(
-            "fixed left-1/2 z-40 -translate-x-1/2 rounded-pill bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-lg",
+            "fixed left-1/2 z-[35] -translate-x-1/2 rounded-pill bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-lg",
             // Above mobile detail sticky book bar + safe area; normal on other pages
             onDetail
               ? "bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4"
