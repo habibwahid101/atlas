@@ -73,7 +73,7 @@ export const LISTINGS: Listing[] = [
     description: "Low-key cottage steps from the sand with flexible cancellation.",
     rating: 4.5,
     reviewCount: 89,
-    images: [u("photo-1499793983690-e8b21bebf34e"), u("photo-1501117716987-c8c394bb29df")],
+    images: [u("photo-1564013799919-ab600027ffc6"), u("photo-1600585154340-be6161a56a0c")],
     included: ["Kitchenette", "Free cancellation", "Beach path"],
     beachfront: true,
     familyRooms: true,

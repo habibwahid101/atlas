@@ -84,6 +84,14 @@ export default function DetailClient({ category, slug }: { category: Category; s
             </div>
           )}
 
+          <button
+            type="button"
+            className="mt-6 min-h-11 w-full rounded-pill border border-slate-200 text-sm font-medium lg:hidden"
+            onClick={() => addCompare(listing)}
+          >
+            Add to compare
+          </button>
+
           {listing.houseRules && (
             <>
               <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">House rules</h2>
@@ -136,20 +144,29 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </aside>
       </div>
 
-      {/* Mobile sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-slate-200 bg-white p-3 lg:hidden">
-        <div>
-          <p className="font-semibold">{formatMoney(price.total)}</p>
-          <p className="text-xs text-slate-500">total · {nightsBetween(search.from, search.to)} nights</p>
+      {/* Spacer so content clears sticky bar + compare dock */}
+      <div className="h-28 lg:hidden" />
+
+      {/* Mobile sticky CTA — all-in total + Book only */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-slate-900">{formatMoney(price.total)}</p>
+            <p className="text-xs text-slate-500">
+              total · {nightsBetween(search.from, search.to)} nights · all-in
+            </p>
+          </div>
+          {!blockReason ? (
+            <Link
+              href={`/book/${category}/${slug}`}
+              className="min-h-11 shrink-0 rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white"
+            >
+              {bookLabel}
+            </Link>
+          ) : (
+            <p className="max-w-[50%] text-right text-xs text-amber-800">{blockReason}</p>
+          )}
         </div>
-        {!blockReason && (
-          <Link href={`/book/${category}/${slug}`} className="rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
-            {bookLabel}
-          </Link>
-        )}
-        <button type="button" className="text-xs text-slate-600" onClick={() => addCompare(listing)}>
-          Compare
-        </button>
       </div>
     </div>
   );

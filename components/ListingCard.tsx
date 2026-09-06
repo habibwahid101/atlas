@@ -34,17 +34,17 @@ export function ListingCard({
           ♡
         </button>
         {badge && (
-          <span className="absolute bottom-3 left-3 rounded-pill bg-coral px-3 py-1 text-xs font-medium text-white">
+          <span className="absolute bottom-3 left-3 rounded-pill bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-800 shadow-sm">
             {badge}
           </span>
         )}
       </div>
       <div className="mt-3 space-y-1">
+        <h3 className="text-[15px] font-semibold leading-snug text-slate-900">{listing.title}</h3>
         <p className="text-sm text-slate-500">{listing.location}</p>
-        <h3 className="font-medium text-slate-900">{listing.title}</h3>
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <span className="text-slate-800">{fromPriceLabel(listing)}</span>
-          <span className="text-slate-500">★ {listing.rating.toFixed(1)}</span>
+        <div className="flex items-baseline justify-between gap-2 pt-0.5">
+          <span className="text-sm font-medium text-coral">{fromPriceLabel(listing)}</span>
+          <span className="text-xs text-slate-500">★ {listing.rating.toFixed(1)}</span>
         </div>
       </div>
     </Link>

@@ -41,8 +41,7 @@ export default function HomePage() {
           <Link
             key={c.href}
             href={c.href}
-            className="shrink-0 border-b-2 border-transparent pb-2 text-sm font-medium text-slate-600 hover:text-slate-900 data-[active=true]:border-coral data-[active=true]:text-coral"
-            data-active={c.cat === "stays"}
+            className="shrink-0 border-b-2 border-transparent pb-2 text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900"
           >
             {c.label}
           </Link>

@@ -152,7 +152,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
                 )}
                 <button
                   type="button"
-                  className="min-h-11 rounded-pill bg-slate-900 px-5 text-sm font-medium text-white"
+                  className="min-h-11 rounded-pill bg-coral px-5 text-sm font-semibold text-white hover:bg-coral-700"
                   onClick={() => validateStep2() && setStep(3)}
                 >
                   Continue to payment
