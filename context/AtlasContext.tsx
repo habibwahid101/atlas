@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Audience, Booking, Category, Listing, SearchState } from "@/lib/types";
 import { defaultDates } from "@/lib/dates";
 
@@ -48,6 +48,8 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareToast, setCompareToast] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const compareRef = useRef(compare);
+  compareRef.current = compare;
 
   useEffect(() => {
     try {
@@ -84,9 +86,20 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!compareToast) return;
-    const t = setTimeout(() => setCompareToast(null), 2800);
+    const t = setTimeout(() => setCompareToast(null), 3200);
     return () => clearTimeout(t);
   }, [compareToast]);
+
+  const addCompare = useCallback((l: Listing) => {
+    const prev = compareRef.current;
+    if (prev.find((x) => x.id === l.id)) return;
+    if (prev.length >= 3) {
+      setCompareToast("Compare up to 3 — remove one first.");
+      return;
+    }
+    setCompare([...prev, l]);
+    setCompareOpen(true);
+  }, []);
 
   const value = useMemo<AtlasContextValue>(
     () => ({
@@ -95,16 +108,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       setAudience: (a) => setSearch((prev) => ({ ...prev, audience: a, ...audienceDefaults(a) })),
       setCategory: (c) => setSearch((prev) => ({ ...prev, category: c })),
       compare,
-      addCompare: (l) =>
-        setCompare((prev) => {
-          if (prev.find((x) => x.id === l.id)) return prev;
-          if (prev.length >= 3) {
-            setCompareToast("Compare up to 3 — remove one first.");
-            return prev;
-          }
-          setCompareOpen(true);
-          return [...prev, l];
-        }),
+      addCompare,
       removeCompare: (id) => setCompare((prev) => prev.filter((x) => x.id !== id)),
       clearCompare: () => setCompare([]),
       bookings,
@@ -116,17 +120,23 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       compareToast,
       clearCompareToast: () => setCompareToast(null),
     }),
-    [search, compare, bookings, compareOpen, compareToast]
+    [search, compare, bookings, compareOpen, compareToast, addCompare]
   );
 
   return (
     <AtlasContext.Provider value={value}>
       {children}
-      {compareToast && (
-        <div className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-pill bg-slate-900 px-4 py-2 text-sm text-white shadow-soft">
-          {compareToast}
+      {compareToast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[100] flex justify-center px-4 lg:bottom-8"
+        >
+          <div className="rounded-pill bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+            {compareToast}
+          </div>
         </div>
-      )}
+      ) : null}
     </AtlasContext.Provider>
   );
 }
