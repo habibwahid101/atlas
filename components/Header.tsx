@@ -42,6 +42,9 @@ export function Header() {
           })}
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/saved" className="hidden text-sm font-medium text-slate-700 hover:text-slate-900 sm:inline">
+            Saved
+          </Link>
           <Link href="/trips" className="text-sm font-medium text-slate-700 hover:text-slate-900">
             My trips
           </Link>
@@ -72,6 +75,18 @@ export function Header() {
       {menuOpen && (
         <nav className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <ul className="flex flex-col gap-1">
+            <li>
+              <Link
+                href="/saved"
+                onClick={() => setMenuOpen(false)}
+                className={cn(
+                  "flex min-h-11 items-center rounded-xl px-3 text-sm font-medium",
+                  pathname.startsWith("/saved") ? "bg-coral/10 text-coral" : "text-slate-700"
+                )}
+              >
+                Saved
+              </Link>
+            </li>
             {items.map((n) => {
               const active = pathname.startsWith(n.href);
               return (

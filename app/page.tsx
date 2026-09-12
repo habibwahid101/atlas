@@ -6,15 +6,17 @@ import { SearchPill } from "@/components/SearchPill";
 import { ListingCard } from "@/components/ListingCard";
 import { featuredListings, categoryHasInventory } from "@/lib/data";
 import { useAtlas } from "@/context/AtlasContext";
+import type { Category } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const CATS = [
-  { href: "/stays", label: "Stays", cat: "stays" },
-  { href: "/day-trips", label: "Day trips", cat: "day-trips" },
-  { href: "/recreation", label: "Recreation", cat: "recreation" },
+  { href: "/stays", label: "Stays", cat: "stays" as Category },
+  { href: "/day-trips", label: "Day trips", cat: "day-trips" as Category },
+  { href: "/recreation", label: "Recreation", cat: "recreation" as Category },
 ] as const;
 
 export default function HomePage() {
-  const { search } = useAtlas();
+  const { search, setCategory } = useAtlas();
   const featured = featuredListings();
 
   return (
@@ -38,13 +40,19 @@ export default function HomePage() {
 
       <section className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 py-8 sm:px-6">
         {CATS.filter((c) => categoryHasInventory(c.cat)).map((c) => (
-          <Link
+          <button
             key={c.href}
-            href={c.href}
-            className="shrink-0 border-b-2 border-transparent pb-2 text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900"
+            type="button"
+            onClick={() => setCategory(c.cat)}
+            className={cn(
+              "shrink-0 border-b-2 pb-2 text-sm font-medium",
+              search.category === c.cat
+                ? "border-coral text-coral"
+                : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900"
+            )}
           >
             {c.label}
-          </Link>
+          </button>
         ))}
       </section>
 

@@ -177,6 +177,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
             {step === 3 && (
               <div className="mt-4">
                 <p className="mb-3 text-sm text-slate-500">Choose your preferred payment method</p>
+                <p className="mb-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-slate-600">
+                  Demo payment — you won’t be charged. No real money moves in this prototype.
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   {METHODS.map((m) => (
                     <button
@@ -199,8 +202,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   onClick={pay}
                   className="mt-4 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Pay BDT {price.total.toLocaleString("en-BD")}
+                  Pay BDT {price.total.toLocaleString("en-BD")} (demo)
                 </button>
+                <p className="mt-2 text-center text-xs text-slate-500">You won’t be charged.</p>
                 {cancelUntil && (
                   <p className="mt-2 text-center text-xs text-emerald-700">
                     Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}. You will get a voucher by email.

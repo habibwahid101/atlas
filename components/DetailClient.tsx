@@ -2,23 +2,42 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
 import { priceForListing } from "@/lib/pricing";
+import { reviewsForListing } from "@/lib/reviews";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
 import type { Category } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default function DetailClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, addCompare } = useAtlas();
+  const { search, addCompare, isSaved, toggleSaved } = useAtlas();
+  const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(false);
+      if (!listing) return;
+      if (e.key === "ArrowRight") setActive((i) => (i + 1) % listing.images.length);
+      if (e.key === "ArrowLeft") setActive((i) => (i - 1 + listing.images.length) % listing.images.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, listing]);
+
   if (!listing) return notFound();
 
+  const reviews = reviewsForListing(listing);
   const guests = search.adults + search.children;
   const price = priceForListing(listing, search.from, search.to, guests);
   const cancelUntil = listing.freeCancellation
     ? addDays(search.from, -listing.cancelUntilDays)
     : null;
+  const saved = isSaved(listing.id);
 
   let blockReason: string | null = null;
   if (search.audience === "Family" && listing.kidsAllowed === false) {
@@ -36,30 +55,87 @@ export default function DetailClient({ category, slug }: { category: Category; s
         ? listing.corporateNotes
         : listing.soloNotes;
 
+  const thumbs = listing.images.slice(0, 5);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="grid gap-3 md:grid-cols-4">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-card md:col-span-4 md:aspect-[21/9]">
-          <Image src={listing.images[0]} alt={listing.title} fill className="object-cover" priority sizes="100vw" />
-        </div>
-        {listing.images.slice(1, 5).map((src, i) => (
-          <div key={src} className="relative hidden aspect-[4/3] overflow-hidden rounded-xl md:block">
+        <button
+          type="button"
+          className="relative aspect-[16/10] overflow-hidden rounded-card text-left md:col-span-4 md:aspect-[21/9]"
+          onClick={() => setLightbox(true)}
+          aria-label="Open photo gallery"
+        >
+          <Image
+            src={listing.images[active] || listing.images[0]}
+            alt={listing.title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </button>
+        {thumbs.map((src, i) => (
+          <button
+            key={`${src}-${i}`}
+            type="button"
+            className={`relative hidden aspect-[4/3] overflow-hidden rounded-xl ring-offset-2 md:block ${
+              active === i ? "ring-2 ring-coral" : ""
+            }`}
+            onClick={() => {
+              setActive(i);
+              if (i === 4 && listing.images.length > 5) setLightbox(true);
+            }}
+            aria-label={`Show photo ${i + 1}`}
+            aria-pressed={active === i}
+          >
             <Image src={src} alt="" fill className="object-cover" sizes="25vw" />
-            {i === 3 && listing.images.length > 5 && (
+            {i === 4 && listing.images.length > 5 && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-medium text-white">
                 +{listing.images.length - 5}
               </div>
             )}
-          </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Mobile thumbs */}
+      <div className="mt-3 flex gap-2 overflow-x-auto md:hidden">
+        {listing.images.map((src, i) => (
+          <button
+            key={`${src}-m-${i}`}
+            type="button"
+            className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg ${
+              active === i ? "ring-2 ring-coral" : ""
+            }`}
+            onClick={() => setActive(i)}
+            aria-label={`Show photo ${i + 1}`}
+          >
+            <Image src={src} alt="" fill className="object-cover" sizes="80px" />
+          </button>
         ))}
       </div>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
         <div>
-          <h1 className="font-display text-3xl text-slate-900">{listing.title}</h1>
-          <p className="mt-1 text-slate-500">
-            {listing.location} · ★ {listing.rating.toFixed(1)} · {listing.reviewCount} reviews
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="font-display text-3xl text-slate-900">{listing.title}</h1>
+              <p className="mt-1 text-slate-500">
+                {listing.location} · ★ {listing.rating.toFixed(1)} · {reviews.length} review
+                {reviews.length === 1 ? "" : "s"}
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label={saved ? "Remove from Saved" : "Save"}
+              aria-pressed={saved}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-lg text-slate-700"
+              onClick={() => toggleSaved(listing.id)}
+            >
+              {saved ? "♥" : "♡"}
+            </button>
+          </div>
           <p className="mt-4 max-w-2xl text-slate-700">{listing.description}</p>
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">What&apos;s included</h2>
@@ -83,6 +159,24 @@ export default function DetailClient({ category, slug }: { category: Category; s
               </ul>
             </div>
           )}
+
+          <section className="mt-10" id="reviews">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Reviews · {reviews.length}
+            </h2>
+            <ul className="mt-4 space-y-4">
+              {reviews.map((r) => (
+                <li key={r.id} className="rounded-card border border-slate-200 bg-white p-4">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="font-medium text-slate-900">{r.author}</p>
+                    <p className="text-xs text-slate-500">{r.date}</p>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600">★ {r.rating.toFixed(1)}</p>
+                  <p className="mt-2 text-sm text-slate-700">{r.text}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <button
             type="button"
@@ -144,10 +238,8 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </aside>
       </div>
 
-      {/* Spacer so content clears sticky bar + compare dock */}
       <div className="h-28 lg:hidden" />
 
-      {/* Mobile sticky CTA — all-in total + Book only */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -168,6 +260,70 @@ export default function DetailClient({ category, slug }: { category: Category; s
           )}
         </div>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-black/90"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo gallery"
+        >
+          <div className="flex items-center justify-between px-4 py-3 text-white">
+            <p className="text-sm">
+              {active + 1} / {listing.images.length}
+            </p>
+            <button
+              type="button"
+              className="min-h-11 min-w-11 rounded-full text-lg"
+              onClick={() => setLightbox(false)}
+              aria-label="Close gallery"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="relative flex flex-1 items-center justify-center px-4">
+            <button
+              type="button"
+              className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white"
+              onClick={() => setActive((i) => (i - 1 + listing.images.length) % listing.images.length)}
+              aria-label="Previous photo"
+            >
+              ‹
+            </button>
+            <div className="relative h-full max-h-[70vh] w-full max-w-4xl">
+              <Image
+                src={listing.images[active]}
+                alt={`${listing.title} photo ${active + 1}`}
+                fill
+                className="object-contain"
+                sizes="100vw"
+              />
+            </div>
+            <button
+              type="button"
+              className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white"
+              onClick={() => setActive((i) => (i + 1) % listing.images.length)}
+              aria-label="Next photo"
+            >
+              ›
+            </button>
+          </div>
+          <div className="flex justify-center gap-2 overflow-x-auto px-4 py-4">
+            {listing.images.map((src, i) => (
+              <button
+                key={`lb-${src}-${i}`}
+                type="button"
+                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-md ${
+                  active === i ? "ring-2 ring-white" : "opacity-70"
+                }`}
+                onClick={() => setActive(i)}
+              >
+                <Image src={src} alt="" fill className="object-cover" sizes="80px" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

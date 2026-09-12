@@ -3,14 +3,22 @@
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAtlas } from "@/context/AtlasContext";
-import type { Audience } from "@/lib/types";
+import type { Audience, Category } from "@/lib/types";
 import { formatShortRange } from "@/lib/dates";
 
-export function SearchPill({ compact = false }: { compact?: boolean }) {
+export function SearchPill({
+  compact = false,
+  category,
+}: {
+  compact?: boolean;
+  /** Override search category for this submit (e.g. home chip). */
+  category?: Category;
+}) {
   const { search, setSearch, setAudience } = useAtlas();
   const router = useRouter();
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
+  const targetCategory = category || search.category || "stays";
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,11 +30,10 @@ export function SearchPill({ compact = false }: { compact?: boolean }) {
       adults: String(search.adults),
       children: String(search.children),
     });
-    router.push(`/stays?${q.toString()}`);
+    router.push(`/${targetCategory}?${q.toString()}`);
   }
 
   function openDates() {
-    // Prefer opening the from picker; browsers show native UI
     fromRef.current?.showPicker?.();
     fromRef.current?.focus();
     fromRef.current?.click();
@@ -48,14 +55,9 @@ export function SearchPill({ compact = false }: { compact?: boolean }) {
         />
       </label>
       <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-      <button
-        type="button"
-        onClick={openDates}
-        className="relative flex flex-1 flex-col items-start px-3 py-2 text-left"
-      >
+      <button type="button" onClick={openDates} className="relative flex flex-1 flex-col items-start px-3 py-2 text-left">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Dates</span>
         <span className="text-sm text-slate-800">{formatShortRange(search.from, search.to)}</span>
-        {/* Hidden native inputs — keep accessible, no visible chrome */}
         <input
           ref={fromRef}
           type="date"
@@ -64,13 +66,13 @@ export function SearchPill({ compact = false }: { compact?: boolean }) {
           value={search.from}
           onChange={(e) => {
             setSearch((s) => ({ ...s, from: e.target.value }));
-            // after picking from, open to
             setTimeout(() => {
               toRef.current?.showPicker?.();
               toRef.current?.focus();
               toRef.current?.click();
             }, 0);
-          }}
+          }
+          }
         />
         <input
           ref={toRef}

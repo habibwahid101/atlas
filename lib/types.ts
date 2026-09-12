@@ -39,6 +39,15 @@ export type SearchState = {
   audience: Audience;
   adults: number;
   children: number;
+  category: Category;
+};
+
+export type Review = {
+  id: string;
+  author: string;
+  rating: number;
+  date: string;
+  text: string;
 };
 
 export type PriceBreakdown = {
