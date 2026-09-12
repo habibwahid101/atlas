@@ -5,6 +5,7 @@ import { AtlasProvider } from "@/context/AtlasContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareTray } from "@/components/CompareTray";
+import { CompareCapToast } from "@/components/CompareCapToast";
 
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </div>
           <CompareTray />
+          <CompareCapToast />
         </AtlasProvider>
       </body>
     </html>

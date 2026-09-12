@@ -1,9 +1,9 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { Audience, Booking, Category, Listing, SearchState } from "@/lib/types";
 import { defaultDates } from "@/lib/dates";
+import { COMPARE_CAP_MESSAGE, emitCompareCapToast } from "@/lib/compare-cap-toast";
 
 type AtlasContextValue = {
   search: SearchState;
@@ -19,14 +19,13 @@ type AtlasContextValue = {
   cancelBooking: (id: string) => void;
   compareOpen: boolean;
   setCompareOpen: (v: boolean) => void;
-  compareToast: string | null;
-  clearCompareToast: () => void;
+  compareCapNotice: string | null;
+  clearCompareCapNotice: () => void;
 };
 
 const AtlasContext = createContext<AtlasContextValue | null>(null);
 
 const defaults = defaultDates();
-const CAP_TOAST = "Compare up to 3 — remove one first.";
 
 function audienceDefaults(a: Audience): Pick<SearchState, "adults" | "children"> {
   if (a === "Family") return { adults: 2, children: 1 };
@@ -48,16 +47,10 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [compare, setCompare] = useState<Listing[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [compareToast, setCompareToast] = useState<string | null>(null);
-  const [toastKey, setToastKey] = useState(0);
+  const [compareCapNotice, setCompareCapNotice] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const compareRef = useRef(compare);
   compareRef.current = compare;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     try {
@@ -93,29 +86,30 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   }, [bookings, hydrated]);
 
   useEffect(() => {
-    if (!compareToast) return;
-    const t = setTimeout(() => setCompareToast(null), 4000);
-    return () => clearTimeout(t);
-  }, [compareToast, toastKey]);
+    if (!compareCapNotice) return;
+    const t = window.setTimeout(() => setCompareCapNotice(null), 4500);
+    return () => window.clearTimeout(t);
+  }, [compareCapNotice]);
 
-  const showCapToast = useCallback(() => {
-    setCompareToast(CAP_TOAST);
-    setToastKey((k) => k + 1);
-  }, []);
-
-  const addCompare = useCallback(
-    (l: Listing) => {
-      const prev = compareRef.current;
-      if (prev.find((x) => x.id === l.id)) return;
+  const addCompare = useCallback((l: Listing) => {
+    // Functional read of latest list — also keep ref in sync for sync callers
+    setCompare((prev) => {
+      if (prev.find((x) => x.id === l.id)) return prev;
       if (prev.length >= 3) {
-        showCapToast();
-        return;
+        // Defer so we never nest setState; emit works even if React state batching is weird
+        queueMicrotask(() => {
+          emitCompareCapToast(COMPARE_CAP_MESSAGE);
+          setCompareCapNotice(COMPARE_CAP_MESSAGE);
+          setCompareOpen(true);
+        });
+        return prev;
       }
-      setCompare([...prev, l]);
-      setCompareOpen(true);
-    },
-    [showCapToast]
-  );
+      queueMicrotask(() => setCompareOpen(true));
+      const next = [...prev, l];
+      compareRef.current = next;
+      return next;
+    });
+  }, []);
 
   const value = useMemo<AtlasContextValue>(
     () => ({
@@ -133,36 +127,13 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
         setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))),
       compareOpen,
       setCompareOpen,
-      compareToast,
-      clearCompareToast: () => setCompareToast(null),
+      compareCapNotice,
+      clearCompareCapNotice: () => setCompareCapNotice(null),
     }),
-    [search, compare, bookings, compareOpen, compareToast, addCompare]
+    [search, compare, bookings, compareOpen, compareCapNotice, addCompare]
   );
 
-  const toast =
-    mounted && compareToast
-      ? createPortal(
-          <div
-            key={toastKey}
-            role="status"
-            aria-live="assertive"
-            data-testid="compare-cap-toast"
-            className="fixed inset-x-0 top-4 z-[200] flex justify-center px-4 pointer-events-none"
-          >
-            <div className="max-w-md rounded-pill bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg">
-              {compareToast}
-            </div>
-          </div>,
-          document.body
-        )
-      : null;
-
-  return (
-    <AtlasContext.Provider value={value}>
-      {children}
-      {toast}
-    </AtlasContext.Provider>
-  );
+  return <AtlasContext.Provider value={value}>{children}</AtlasContext.Provider>;
 }
 
 export function useAtlas() {
