@@ -34,6 +34,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
   }, [lightbox, listing]);
 
   if (!listing) return notFound();
+  const item = listing;
 
   const guests = search.adults + (search.audience === "Corporate" ? 0 : search.children);
   const price = priceForListing(listing, search.from, search.to, search.adults + search.children);
@@ -81,7 +82,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
   }
 
   const wa = listing.hostWhatsApp || listing.hostPhone.replace(/\D/g, "");
-  const inCompare = compare.some((x) => x.id === listing.id);
+  const inCompare = compare.some((x) => x.id === item.id);
   const compareFull = compare.length >= 3 && !inCompare;
 
   function onCompareClick() {
@@ -94,7 +95,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
       setCompareOpen(true);
       return;
     }
-    addCompare(listing);
+    addCompare(item);
   }
 
   const compareLabel = inCompare
