@@ -6,6 +6,10 @@ import { BrowseSkeleton } from "@/components/Skeleton";
 export const metadata: Metadata = {
   title: "Recreation in Bangladesh | ATLAS",
   description: "Browse Bangladesh recreation with all-in BDT pricing.",
+  openGraph: {
+    title: "Recreation in Bangladesh | ATLAS",
+    description: "Browse Bangladesh recreation with all-in BDT pricing.",
+  },
 };
 
 export default function Page() {

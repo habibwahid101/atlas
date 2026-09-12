@@ -258,7 +258,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
         <h2 className="font-medium">{listing.title}</h2>
         <p className="text-sm text-slate-500">{listing.location}</p>
         <p className="mt-2 text-sm text-slate-600">
-          {nightsBetween(search.from, search.to)} nights · {formatShortRange(search.from, search.to)}
+          {category === "stays"
+            ? `${nightsBetween(search.from, search.to)} nights · ${formatShortRange(search.from, search.to)}`
+            : formatShortRange(search.from, search.to)}
         </p>
         <ul className="mt-4 space-y-1 border-t border-slate-100 pt-3 text-sm text-slate-600">
           <li className="flex justify-between"><span>{category === "stays" ? "Stay" : category === "day-trips" ? "Day trip" : "Activity"}</span><span>{formatMoney(price.base)}</span></li>
