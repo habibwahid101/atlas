@@ -19,8 +19,6 @@ type AtlasContextValue = {
   cancelBooking: (id: string) => void;
   compareOpen: boolean;
   setCompareOpen: (v: boolean) => void;
-  compareCapNotice: string | null;
-  clearCompareCapNotice: () => void;
 };
 
 const AtlasContext = createContext<AtlasContextValue | null>(null);
@@ -47,7 +45,6 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [compare, setCompare] = useState<Listing[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
-  const [compareCapNotice, setCompareCapNotice] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const compareRef = useRef(compare);
   compareRef.current = compare;
@@ -85,21 +82,12 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("atlas-bookings", JSON.stringify(bookings));
   }, [bookings, hydrated]);
 
-  useEffect(() => {
-    if (!compareCapNotice) return;
-    const t = window.setTimeout(() => setCompareCapNotice(null), 4500);
-    return () => window.clearTimeout(t);
-  }, [compareCapNotice]);
-
   const addCompare = useCallback((l: Listing) => {
-    // Functional read of latest list — also keep ref in sync for sync callers
     setCompare((prev) => {
       if (prev.find((x) => x.id === l.id)) return prev;
       if (prev.length >= 3) {
-        // Defer so we never nest setState; emit works even if React state batching is weird
         queueMicrotask(() => {
           emitCompareCapToast(COMPARE_CAP_MESSAGE);
-          setCompareCapNotice(COMPARE_CAP_MESSAGE);
           setCompareOpen(true);
         });
         return prev;
@@ -127,10 +115,8 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
         setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))),
       compareOpen,
       setCompareOpen,
-      compareCapNotice,
-      clearCompareCapNotice: () => setCompareCapNotice(null),
     }),
-    [search, compare, bookings, compareOpen, compareCapNotice, addCompare]
+    [search, compare, bookings, compareOpen, addCompare]
   );
 
   return <AtlasContext.Provider value={value}>{children}</AtlasContext.Provider>;

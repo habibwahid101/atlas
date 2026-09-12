@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
+import { COMPARE_CAP_MESSAGE, emitCompareCapToast } from "@/lib/compare-cap-toast";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
 import { guestSummary } from "@/lib/copy";
@@ -14,7 +15,7 @@ import { notFound } from "next/navigation";
 
 export default function DetailClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, setSearch, setAudience, addCompare } = useAtlas();
+  const { search, setSearch, setAudience, addCompare, compare, setCompareOpen } = useAtlas();
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -80,6 +81,30 @@ export default function DetailClient({ category, slug }: { category: Category; s
   }
 
   const wa = listing.hostWhatsApp || listing.hostPhone.replace(/\D/g, "");
+  const inCompare = compare.some((x) => x.id === listing.id);
+  const compareFull = compare.length >= 3 && !inCompare;
+
+  function onCompareClick() {
+    if (inCompare) {
+      setCompareOpen(true);
+      return;
+    }
+    if (compare.length >= 3) {
+      emitCompareCapToast(COMPARE_CAP_MESSAGE);
+      setCompareOpen(true);
+      return;
+    }
+    addCompare(listing);
+  }
+
+  const compareLabel = inCompare
+    ? compare.length >= 3
+      ? "Added · 3 of 3"
+      : "In compare"
+    : compareFull
+      ? "Compare full (3/3)"
+      : "Add to compare";
+
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -183,10 +208,12 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
           <button
             type="button"
-            className="mt-6 min-h-11 w-full rounded-pill border border-slate-200 text-sm font-medium lg:hidden"
-            onClick={() => addCompare(listing)}
+            className={`mt-6 min-h-11 w-full rounded-pill border text-sm font-medium lg:hidden ${
+              compareFull || inCompare ? "border-slate-200 text-slate-600" : "border-slate-200 text-slate-800"
+            }`}
+            onClick={onCompareClick}
           >
-            Add to compare
+            {compareLabel}
           </button>
 
           {listing.houseRules && (
@@ -231,10 +258,12 @@ export default function DetailClient({ category, slug }: { category: Category; s
           )}
           <button
             type="button"
-            className="mt-2 flex min-h-11 w-full items-center justify-center rounded-pill border border-slate-200 text-sm font-medium"
-            onClick={() => addCompare(listing)}
+            className={`mt-2 flex min-h-11 w-full items-center justify-center rounded-pill border text-sm font-medium ${
+              compareFull || inCompare ? "border-slate-200 text-slate-600" : "border-slate-200 text-slate-800"
+            }`}
+            onClick={onCompareClick}
           >
-            Add to compare
+            {compareLabel}
           </button>
           {cancelUntil && (
             <p className="mt-3 text-sm text-emerald-700">Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}</p>

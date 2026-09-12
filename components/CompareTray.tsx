@@ -10,7 +10,7 @@ import { formatMoney } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export function CompareTray() {
-  const { compare, removeCompare, compareOpen, setCompareOpen, search, compareCapNotice } = useAtlas();
+  const { compare, removeCompare, compareOpen, setCompareOpen, search } = useAtlas();
   const pathname = usePathname();
   const onBook = pathname.startsWith("/book");
   const onDetail =
@@ -50,13 +50,13 @@ export function CompareTray() {
       )}
       {compareOpen && (
         <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-auto rounded-t-card border border-slate-200 bg-white p-4 shadow-2xl sm:p-6">
-          {compareCapNotice && (
+          {compare.length === 3 && (
             <div
-              data-testid="compare-cap-toast"
+              data-testid="compare-cap-banner"
               role="status"
-              className="mx-auto mb-3 max-w-6xl rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+              className="mx-auto mb-3 max-w-6xl rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-sm text-amber-950"
             >
-              {compareCapNotice}
+              Compare up to 3 — remove one first.
             </div>
           )}
           <div className="mx-auto flex max-w-6xl items-center justify-between">
