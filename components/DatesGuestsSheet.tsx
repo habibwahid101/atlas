@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type RefObject } from "react";
 import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { GuestSteppers } from "@/components/GuestSteppers";
 import { clampAwaySoldOut, dateFieldLabels, isSoldOutDate, validateDateRange } from "@/lib/availability";
@@ -22,6 +22,7 @@ export function DatesGuestsSheet({
   category = "stays",
   soldOutDates,
   minNights,
+  openerRef,
 }: {
   open: boolean;
   onClose: () => void;
@@ -38,6 +39,7 @@ export function DatesGuestsSheet({
   category?: Category;
   soldOutDates?: string[];
   minNights?: number;
+  openerRef?: RefObject<HTMLElement | null>;
 }) {
   const labels = dateFieldLabels(category);
   const dateError = useMemo(
@@ -46,7 +48,7 @@ export function DatesGuestsSheet({
   );
 
   const closeRef = useRef<HTMLButtonElement>(null);
-  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef });
+  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef, openerRef });
 
   if (!open) return null;
 

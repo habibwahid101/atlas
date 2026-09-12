@@ -6,11 +6,12 @@ import { useAtlas } from "@/context/AtlasContext";
 import { formatMoney, formatShortRange } from "@/lib/dates";
 import { guestSummary } from "@/lib/copy";
 import { ShareSheet } from "@/components/ShareSheet";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function ConfirmClient({ id }: { id: string }) {
   const { bookings } = useAtlas();
   const [shareOpen, setShareOpen] = useState(false);
+  const shareOpenerRef = useRef<HTMLElement | null>(null);
   const booking = bookings.find((b) => b.id === id);
 
   if (!booking) {
@@ -90,7 +91,7 @@ export default function ConfirmClient({ id }: { id: string }) {
         <button
           type="button"
           className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
-          onClick={() => setShareOpen(true)}
+          onClick={(e) => { shareOpenerRef.current = e.currentTarget; setShareOpen(true); }}
         >
           Share
         </button>
@@ -116,6 +117,7 @@ export default function ConfirmClient({ id }: { id: string }) {
       <ShareSheet
         open={shareOpen}
         onClose={() => setShareOpen(false)}
+        openerRef={shareOpenerRef}
         title={booking.title}
         url={typeof window !== "undefined" ? `${window.location.origin}/bookings/${booking.id}` : `/bookings/${booking.id}`}
       />

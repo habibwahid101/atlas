@@ -21,8 +21,10 @@ export function Header() {
   const [signInOpen, setSignInOpen] = useState(false);
   const items = NAV.filter((n) => categoryHasInventory(n.cat));
   const authCloseRef = useRef<HTMLButtonElement>(null);
+  const authOpenerRef = useRef<HTMLElement | null>(null);
   const { panelRef: authPanelRef } = useDialogA11y(signInOpen, () => setSignInOpen(false), {
     initialFocusRef: authCloseRef,
+    openerRef: authOpenerRef,
   });
 
   useEffect(() => {
@@ -82,7 +84,10 @@ export function Header() {
           <button
             type="button"
             className="rounded-pill border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 sm:px-4"
-            onClick={() => setSignInOpen(true)}
+            onClick={(e) => {
+              authOpenerRef.current = e.currentTarget;
+              setSignInOpen(true);
+            }}
             aria-haspopup="dialog"
           >
             Sign in
@@ -134,7 +139,8 @@ export function Header() {
               <button
                 type="button"
                 className="flex min-h-11 w-full items-center rounded-xl px-3 text-sm font-medium text-slate-700"
-                onClick={() => {
+                onClick={(e) => {
+                  authOpenerRef.current = e.currentTarget;
                   setMenuOpen(false);
                   setSignInOpen(true);
                 }}

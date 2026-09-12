@@ -136,8 +136,10 @@ export default function BrowsePage({ category }: { category: Category }) {
 
   const priceActive = minPrice != null || maxPrice != null;
   const priceCloseRef = useRef<HTMLButtonElement>(null);
+  const priceOpenerRef = useRef<HTMLElement | null>(null);
   const { panelRef: pricePanelRef } = useDialogA11y(priceOpen, () => setPriceOpen(false), {
     initialFocusRef: priceCloseRef,
+    openerRef: priceOpenerRef,
   });
 
   return (
@@ -153,7 +155,10 @@ export default function BrowsePage({ category }: { category: Category }) {
           <FilterChips category={category} audience={who} filters={filters} setFilters={setFilters} />
           <button
             type="button"
-            onClick={() => setPriceOpen(true)}
+            onClick={(e) => {
+              priceOpenerRef.current = e.currentTarget;
+              setPriceOpen(true);
+            }}
             className={`min-h-10 rounded-pill border px-4 text-sm ${
               priceActive ? "border-coral bg-coral text-white" : "border-slate-200 bg-white text-slate-700"
             }`}

@@ -25,11 +25,15 @@ export default function DetailClient({ category, slug }: { category: Category; s
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const lightboxCloseRef = useRef<HTMLButtonElement>(null);
+  const lightboxOpenerRef = useRef<HTMLElement | null>(null);
   const { panelRef: lightboxRef } = useDialogA11y(lightbox, () => setLightbox(false), {
     initialFocusRef: lightboxCloseRef,
+    openerRef: lightboxOpenerRef,
   });
   const [sheetOpen, setSheetOpen] = useState(false);
+  const datesOpenerRef = useRef<HTMLElement | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const shareOpenerRef = useRef<HTMLElement | null>(null);
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -142,7 +146,10 @@ export default function DetailClient({ category, slug }: { category: Category; s
         <button
           type="button"
           className="relative aspect-[16/10] w-full overflow-hidden rounded-card text-left sm:aspect-[21/9]"
-          onClick={() => setLightbox(true)}
+          onClick={(e) => {
+            lightboxOpenerRef.current = e.currentTarget;
+            setLightbox(true);
+          }}
           aria-label="Open photo gallery"
         >
           <Image
@@ -166,9 +173,10 @@ export default function DetailClient({ category, slug }: { category: Category; s
                 className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-28 ${
                   active === i && !isLastOverlay ? "ring-2 ring-coral ring-offset-2" : ""
                 }`}
-                onClick={() => {
+                onClick={(e) => {
                   if (isLastOverlay) {
                     setActive(i);
+                    lightboxOpenerRef.current = e.currentTarget;
                     setLightbox(true);
                   } else setActive(i);
                 }}
@@ -286,7 +294,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </div>
 
         <aside className="h-fit rounded-card border border-slate-200 bg-white p-5 shadow-soft lg:sticky lg:top-24">
-          <button type="button" className="w-full text-left" onClick={() => setSheetOpen(true)}>
+          <button type="button" className="w-full text-left" onClick={(e) => { datesOpenerRef.current = e.currentTarget; setSheetOpen(true); }}>
             <p className="text-sm text-slate-500">Dates</p>
             <p className="font-medium text-coral underline-offset-2 hover:underline">{formatShortRange(search.from, search.to)}</p>
             <p className="mt-3 text-sm text-slate-500">Guests</p>
@@ -327,7 +335,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
           <button
             type="button"
             className="mt-2 flex min-h-11 w-full items-center justify-center rounded-pill border border-slate-200 text-sm font-medium text-slate-800"
-            onClick={() => setShareOpen(true)}
+            onClick={(e) => { shareOpenerRef.current = e.currentTarget; setShareOpen(true); }}
           >
             Share
           </button>
@@ -341,11 +349,11 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
         <div className="mb-2 flex gap-3 text-xs text-slate-600">
-          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={() => setSheetOpen(true)}>
+          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={(e) => { datesOpenerRef.current = e.currentTarget; setSheetOpen(true); }}>
             <span className="block text-[10px] uppercase text-slate-400">Dates</span>
             {formatShortRange(search.from, search.to)}
           </button>
-          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={() => setSheetOpen(true)}>
+          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={(e) => { datesOpenerRef.current = e.currentTarget; setSheetOpen(true); }}>
             <span className="block text-[10px] uppercase text-slate-400">Guests</span>
             {guestSummary(search.adults, search.audience === "Corporate" ? 0 : search.children)}
           </button>
@@ -367,6 +375,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
       <DatesGuestsSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
+        openerRef={datesOpenerRef}
         from={search.from}
         to={search.to}
         audience={search.audience}
@@ -382,7 +391,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
         minNights={listing.minNights}
       />
 
-      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={listing.title} url={shareUrl} />
+      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={listing.title} url={shareUrl} openerRef={shareOpenerRef} />
 
       {lightbox && (
         <div
@@ -400,7 +409,10 @@ export default function DetailClient({ category, slug }: { category: Category; s
               <h2 id="lightbox-title" className="sr-only">
                 Photo gallery
               </h2>
-              <p id="lightbox-status" className="text-sm" aria-live="polite">
+              <p className="text-sm" aria-hidden="true">
+                {active + 1} / {listing.images.length}
+              </p>
+              <p id="lightbox-status" className="sr-only" aria-live="polite">
                 Photo {active + 1} of {listing.images.length}
               </p>
             </div>

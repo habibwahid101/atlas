@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useDialogA11y } from "@/hooks/useDialogA11y";
 
 export function ShareSheet({
@@ -8,16 +8,18 @@ export function ShareSheet({
   onClose,
   title,
   url,
+  openerRef,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   url: string;
+  openerRef?: RefObject<HTMLElement | null>;
 }) {
   const [toast, setToast] = useState<string | null>(null);
 
   const closeRef = useRef<HTMLButtonElement>(null);
-  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef });
+  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef, openerRef });
 
   useEffect(() => {
     if (!toast) return;
