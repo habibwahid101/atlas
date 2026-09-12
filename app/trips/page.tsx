@@ -4,17 +4,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
-import { formatMoney, formatShortRange } from "@/lib/dates";
+import { formatShortRange, parseISO } from "@/lib/dates";
 import { guestSummary } from "@/lib/copy";
+import type { Booking } from "@/lib/types";
 
 type Tab = "upcoming" | "past" | "cancelled";
+
+function effectiveStatus(b: Booking, today: Date): Tab {
+  if (b.status === "cancelled") return "cancelled";
+  if (b.status === "past") return "past";
+  // upcoming in storage, but ended → past
+  const end = parseISO(b.to);
+  if (end < today) return "past";
+  return "upcoming";
+}
 
 export default function TripsPage() {
   const { bookings, cancelBooking } = useAtlas();
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const list = useMemo(() => bookings.filter((b) => b.status === tab), [bookings, tab]);
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const list = useMemo(
+    () => bookings.filter((b) => effectiveStatus(b, today) === tab),
+    [bookings, tab, today]
+  );
   const pending = bookings.find((b) => b.id === confirmId);
 
   useEffect(() => {
@@ -40,9 +60,17 @@ export default function TripsPage() {
     setToast("Booking cancelled");
   }
 
+  const emptyCopy =
+    tab === "upcoming"
+      ? "No upcoming trips yet. Browse stays, day trips, or recreation."
+      : tab === "past"
+        ? "No past trips."
+        : "No cancelled trips.";
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <h1 className="font-display text-3xl">My trips</h1>
+      <p className="mt-1 text-sm text-slate-500">Saved on this device only</p>
       <div className="mt-4 flex gap-4 border-b border-slate-200">
         {(["upcoming", "past", "cancelled"] as Tab[]).map((t) => (
           <button
@@ -59,58 +87,57 @@ export default function TripsPage() {
       </div>
       {list.length === 0 ? (
         <div className="mt-12 text-center text-slate-600">
-          <p>
-            {tab === "upcoming"
-              ? "No upcoming trips yet. Browse stays, day trips, or recreation."
-              : `No ${tab} trips.`}
-          </p>
+          <p>{emptyCopy}</p>
           <Link href="/stays" className="mt-4 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
             Browse ATLAS
           </Link>
         </div>
       ) : (
         <div className="mt-6 space-y-4">
-          {list.map((b) => (
-            <article key={b.id} className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft">
-              <div className="grid sm:grid-cols-[160px_1fr]">
-                <div className="relative min-h-[140px]">
-                  <Image src={b.image} alt={b.title} fill className="object-cover" sizes="160px" />
-                </div>
-                <div className="p-4">
-                  <p className="text-sm font-medium text-coral capitalize">
-                    {b.status} · {formatShortRange(b.from, b.to)}
-                  </p>
-                  <h2 className="mt-1 text-lg font-semibold">{b.title}</h2>
-                  <p className="text-sm text-slate-500">{b.location}</p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    {b.audience} · {guestSummary(b.adults, b.children)}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Booking {b.ref} · Demo · BDT {b.total.toLocaleString("en-BD")}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link href={`/bookings/${b.id}/voucher`} className="min-h-11 rounded-pill bg-coral px-4 py-2 text-sm font-semibold text-white">
-                      View voucher
-                    </Link>
-                    {b.status === "upcoming" && (
-                      <button
-                        type="button"
-                        className="min-h-11 px-3 text-sm text-coral"
-                        onClick={() => setConfirmId(b.id)}
-                      >
-                        Cancel booking
-                      </button>
-                    )}
-                    {b.audience === "Corporate" && (
-                      <Link href={`/bookings/${b.id}/invoice`} className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm">
-                        Invoice PDF
+          {list.map((b) => {
+            const status = effectiveStatus(b, today);
+            return (
+              <article key={b.id} className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft">
+                <div className="grid sm:grid-cols-[160px_1fr]">
+                  <div className="relative min-h-[140px]">
+                    <Image src={b.image} alt={b.title} fill className="object-cover" sizes="160px" />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm font-medium text-coral capitalize">
+                      {status} · {formatShortRange(b.from, b.to)}
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold">{b.title}</h2>
+                    <p className="text-sm text-slate-500">{b.location}</p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {b.audience} · {guestSummary(b.adults, b.children)}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Booking {b.ref} · Demo · BDT {b.total.toLocaleString("en-BD")}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link href={`/bookings/${b.id}/voucher`} className="min-h-11 rounded-pill bg-coral px-4 py-2 text-sm font-semibold text-white">
+                        View voucher
                       </Link>
-                    )}
+                      {status === "upcoming" && (
+                        <button
+                          type="button"
+                          className="min-h-11 px-3 text-sm text-coral"
+                          onClick={() => setConfirmId(b.id)}
+                        >
+                          Cancel booking
+                        </button>
+                      )}
+                      {b.audience === "Corporate" && (
+                        <Link href={`/bookings/${b.id}/invoice`} className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm">
+                          Invoice PDF
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 

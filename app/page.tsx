@@ -61,7 +61,7 @@ export default function HomePage() {
                 Book Bangladesh with the full price up front
               </h1>
               <p className="mt-3 max-w-xl text-base leading-snug text-white/90 sm:text-lg">
-                Stays, day trips, and recreation. Filter by Single, Family, or Corporate — then compare and book.
+                Stays, day trips, and recreation — all-in BDT, no surprise fees.
               </p>
               <div className="mt-6">
                 <SearchPill />

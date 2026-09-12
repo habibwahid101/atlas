@@ -1,6 +1,14 @@
 export type Audience = "Single" | "Family" | "Corporate";
 export type Category = "stays" | "day-trips" | "recreation";
 
+export type Review = {
+  id: string;
+  name: string;
+  date: string;
+  text: string;
+  rating: number;
+};
+
 export type Listing = {
   id: string;
   slug: string;
@@ -30,6 +38,9 @@ export type Listing = {
   soloNotes?: string[];
   houseRules?: string[];
   soldOutDates?: string[];
+  /** Minimum nights for stays; default 1 when omitted */
+  minNights?: number;
+  reviews?: Review[];
   hostName: string;
   hostPhone: string;
   hostEmail: string;
@@ -44,14 +55,6 @@ export type SearchState = {
   adults: number;
   children: number;
   category: Category;
-};
-
-export type Review = {
-  id: string;
-  author: string;
-  rating: number;
-  date: string;
-  text: string;
 };
 
 export type PriceBreakdown = {

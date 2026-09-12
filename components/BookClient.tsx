@@ -10,6 +10,7 @@ import { useAtlas } from "@/context/AtlasContext";
 import { getListing, makeBookingRef } from "@/lib/data";
 import { priceForListing } from "@/lib/pricing";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
+import { dateFieldLabels, validateDateRange } from "@/lib/availability";
 import type { Audience, Category } from "@/lib/types";
 
 const METHODS = ["bKash", "Nagad", "Visa/Mastercard", "Bank transfer"] as const;
@@ -46,6 +47,14 @@ export default function BookClient({ category, slug }: { category: Category; slu
   }
 
   const corporate = search.audience === "Corporate";
+  const labels = dateFieldLabels(category);
+  const dateError = validateDateRange({
+    from: search.from,
+    to: search.to,
+    category,
+    minNights: listing.minNights,
+    soldOutDates: listing.soldOutDates,
+  });
   const cancelUntil = listing.freeCancellation
     ? addDays(search.from, -listing.cancelUntilDays)
     : null;
@@ -64,7 +73,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
   }
 
   function pay() {
-    if (!validateStep2() || !method || !listing || !price) return;
+    if (dateError || !validateStep2() || !method || !listing || !price) return;
     const id = crypto.randomUUID();
     const ref = makeBookingRef();
     addBooking({
@@ -119,7 +128,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-medium">
-                From
+                {labels.from}
                 <input
                   type="date"
                   className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
@@ -128,7 +137,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
                 />
               </label>
               <label className="text-sm font-medium">
-                To
+                {labels.to}
                 <input
                   type="date"
                   className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
@@ -136,6 +145,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
                 />
               </label>
+              {dateError && (
+                <p className="sm:col-span-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">{dateError}</p>
+              )}
               <label className="text-sm font-medium sm:col-span-2">
                 Who
                 <select
@@ -234,7 +246,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
                 </p>
                 <button
                   type="button"
-                  disabled={!method || !validateSilent()}
+                  disabled={!!dateError || !method || !validateSilent()}
                   onClick={pay}
                   className="flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >

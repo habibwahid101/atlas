@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtlas } from "@/context/AtlasContext";
 import type { Audience, Category } from "@/lib/types";
-import { formatShortRange } from "@/lib/dates";
+import { dateFieldLabels, validateDateRange } from "@/lib/availability";
 
 export function SearchPill({
   compact = false,
@@ -15,13 +15,23 @@ export function SearchPill({
 }) {
   const { search, setSearch, setAudience } = useAtlas();
   const router = useRouter();
-  const fromRef = useRef<HTMLInputElement>(null);
-  const toRef = useRef<HTMLInputElement>(null);
   const [whoOpen, setWhoOpen] = useState(false);
   const targetCategory = category || search.category || "stays";
+  const labels = dateFieldLabels(targetCategory);
+  const dateError = useMemo(
+    () =>
+      validateDateRange({
+        from: search.from,
+        to: search.to,
+        category: targetCategory,
+        minNights: 1,
+      }),
+    [search.from, search.to, targetCategory]
+  );
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (dateError) return;
     setWhoOpen(false);
     const q = new URLSearchParams({
       location: search.location,
@@ -32,12 +42,6 @@ export function SearchPill({
       children: String(search.children),
     });
     router.push(`/${targetCategory}?${q.toString()}`);
-  }
-
-  function openDates() {
-    fromRef.current?.showPicker?.();
-    fromRef.current?.focus();
-    fromRef.current?.click();
   }
 
   function whoLabel() {
@@ -75,33 +79,31 @@ export function SearchPill({
         />
       </label>
       <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-      <button type="button" onClick={openDates} className="relative flex flex-1 flex-col items-start px-3 py-2 text-left">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Dates</span>
-        <span className="text-sm text-slate-800">{formatShortRange(search.from, search.to)}</span>
-        <input
-          ref={fromRef}
-          type="date"
-          aria-label="Check-in"
-          className="pointer-events-none absolute inset-0 h-full w-1/2 opacity-0"
-          value={search.from}
-          onChange={(e) => {
-            setSearch((s) => ({ ...s, from: e.target.value }));
-            setTimeout(() => {
-              toRef.current?.showPicker?.();
-              toRef.current?.focus();
-              toRef.current?.click();
-            }, 0);
-          }}
-        />
-        <input
-          ref={toRef}
-          type="date"
-          aria-label="Check-out"
-          className="pointer-events-none absolute inset-0 left-1/2 h-full w-1/2 opacity-0"
-          value={search.to}
-          onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
-        />
-      </button>
+      <div className="flex flex-[1.4] gap-2 px-2 py-1 sm:px-3">
+        <label className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{labels.from}</span>
+          <input
+            type="date"
+            className="min-h-9 w-full bg-transparent text-sm outline-none"
+            value={search.from}
+            onChange={(e) => setSearch((s) => ({ ...s, from: e.target.value }))}
+          />
+        </label>
+        <label className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{labels.to}</span>
+          <input
+            type="date"
+            className="min-h-9 w-full bg-transparent text-sm outline-none"
+            value={search.to}
+            onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
+          />
+        </label>
+      </div>
+      {dateError && (
+        <p className="px-3 text-xs text-amber-800 sm:absolute sm:bottom-full sm:left-1/3 sm:mb-1 sm:rounded-lg sm:bg-amber-50 sm:px-2 sm:py-1">
+          {dateError}
+        </p>
+      )}
       <div className="hidden h-8 w-px bg-slate-200 sm:block" />
       <div className="relative flex flex-1 flex-col px-3 py-2">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Who</span>
@@ -145,7 +147,8 @@ export function SearchPill({
       </div>
       <button
         type="submit"
-        className="inline-flex min-h-11 items-center justify-center rounded-pill bg-coral px-6 text-sm font-semibold text-white hover:bg-coral-700"
+        disabled={!!dateError}
+        className="inline-flex min-h-11 items-center justify-center rounded-pill bg-coral px-6 text-sm font-semibold text-white hover:bg-coral-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Search ATLAS
       </button>

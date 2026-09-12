@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { categoryHasInventory } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +15,17 @@ const NAV = [
 export function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [signInNote, setSignInNote] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
   const items = NAV.filter((n) => categoryHasInventory(n.cat));
+
+  useEffect(() => {
+    if (!signInOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSignInOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [signInOpen]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-sand-50/90 backdrop-blur">
@@ -48,8 +57,8 @@ export function Header() {
           <button
             type="button"
             className="rounded-pill border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 sm:px-4"
-            onClick={() => setSignInNote((v) => !v)}
-            aria-expanded={signInNote}
+            onClick={() => setSignInOpen(true)}
+            aria-haspopup="dialog"
           >
             Sign in
           </button>
@@ -64,11 +73,6 @@ export function Header() {
           </button>
         </div>
       </div>
-      {signInNote && (
-        <div className="border-t border-slate-100 bg-white px-4 py-3 text-sm text-slate-600 sm:px-6">
-          Guest checkout works now. Sign-in accounts ship in a later release.
-        </div>
-      )}
       {menuOpen && (
         <nav className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <ul className="flex flex-col gap-1">
@@ -91,6 +95,35 @@ export function Header() {
             })}
           </ul>
         </nav>
+      )}
+
+      {signInOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="accounts-soon-title"
+          onClick={() => setSignInOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="accounts-soon-title" className="font-display text-xl text-slate-900">
+              Accounts coming soon
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Book as a guest for now — trips save on this device.
+            </p>
+            <button
+              type="button"
+              className="mt-5 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white hover:bg-coral-700"
+              onClick={() => setSignInOpen(false)}
+            >
+              Continue as guest
+            </button>
+          </div>
+        </div>
       )}
     </header>
   );

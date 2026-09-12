@@ -5,9 +5,12 @@ import Link from "next/link";
 import { useAtlas } from "@/context/AtlasContext";
 import { formatMoney, formatShortRange } from "@/lib/dates";
 import { guestSummary } from "@/lib/copy";
+import { ShareSheet } from "@/components/ShareSheet";
+import { useState } from "react";
 
 export default function ConfirmClient({ id }: { id: string }) {
   const { bookings } = useAtlas();
+  const [shareOpen, setShareOpen] = useState(false);
   const booking = bookings.find((b) => b.id === id);
 
   if (!booking) {
@@ -81,6 +84,13 @@ export default function ConfirmClient({ id }: { id: string }) {
         >
           Add to calendar
         </a>
+        <button
+          type="button"
+          className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
+          onClick={() => setShareOpen(true)}
+        >
+          Share
+        </button>
         <Link href="/trips" className="min-h-11 rounded-pill bg-coral px-4 py-2 text-sm font-semibold text-white">
           My trips
         </Link>
@@ -95,6 +105,13 @@ export default function ConfirmClient({ id }: { id: string }) {
         Free cancellation until {formatShortRange(booking.cancelUntil, booking.cancelUntil).split("–")[0]}. Manage this booking in{" "}
         <Link href="/trips" className="font-medium text-slate-800">My trips</Link>.
       </p>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={booking.title}
+        url={typeof window !== "undefined" ? `${window.location.origin}/bookings/${booking.id}` : `/bookings/${booking.id}`}
+      />
     </div>
   );
 }

@@ -2,14 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
+import { ShareSheet } from "@/components/ShareSheet";
 import { COMPARE_CAP_MESSAGE, emitCompareCapToast } from "@/lib/compare-cap-toast";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
 import { guestSummary } from "@/lib/copy";
 import { priceForListing } from "@/lib/pricing";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
+import { validateDateRange } from "@/lib/availability";
 import type { Audience, Category } from "@/lib/types";
 import { notFound } from "next/navigation";
 
@@ -19,6 +21,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -33,10 +36,23 @@ export default function DetailClient({ category, slug }: { category: Category; s
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, listing]);
 
+  const dateBlock = useMemo(
+    () =>
+      listing
+        ? validateDateRange({
+            from: search.from,
+            to: search.to,
+            category,
+            minNights: listing.minNights,
+            soldOutDates: listing.soldOutDates,
+          })
+        : null,
+    [listing, search.from, search.to, category]
+  );
+
   if (!listing) return notFound();
   const item = listing;
 
-  const guests = search.adults + (search.audience === "Corporate" ? 0 : search.children);
   const price = priceForListing(listing, search.from, search.to, search.adults + search.children);
   const cancelUntil = listing.freeCancellation
     ? addDays(search.from, -listing.cancelUntilDays)
@@ -48,6 +64,9 @@ export default function DetailClient({ category, slug }: { category: Category; s
   }
   if (search.audience === "Corporate" && !listing.invoiceReady) {
     blockReason = "This listing doesn’t issue invoices.";
+  }
+  if (!blockReason && dateBlock) {
+    blockReason = dateBlock;
   }
 
   const bookLabel = category === "stays" ? "Reserve this stay" : "Reserve this trip";
@@ -83,6 +102,11 @@ export default function DetailClient({ category, slug }: { category: Category; s
   const wa = listing.hostWhatsApp || listing.hostPhone.replace(/\D/g, "");
   const inCompare = compare.some((x) => x.id === item.id);
   const compareFull = compare.length >= 3 && !inCompare;
+  const hasReviews = Array.isArray(listing.reviews) && listing.reviews.length > 0;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/${category}/${slug}`
+      : `/${category}/${slug}`;
 
   function onCompareClick() {
     if (inCompare) {
@@ -104,7 +128,6 @@ export default function DetailClient({ category, slug }: { category: Category; s
     : compareFull
       ? "Compare full (3/3)"
       : "Add to compare";
-
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -163,11 +186,32 @@ export default function DetailClient({ category, slug }: { category: Category; s
           </p>
           <p className="mt-4 max-w-2xl text-slate-700">{listing.description}</p>
 
+          {hasReviews && (
+            <section className="mt-8">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Guest reviews</h2>
+              <p className="mt-2 text-sm text-slate-700">
+                ★ {listing.rating.toFixed(1)} · {listing.reviewCount} reviews
+              </p>
+              <ul className="mt-4 space-y-4">
+                {listing.reviews!.map((r) => (
+                  <li key={r.id} className="rounded-card border border-slate-200 bg-white p-4">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                      <p className="font-medium text-slate-900">
+                        {r.name} · {r.date} · ★ {r.rating}
+                      </p>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600 line-clamp-3">{r.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">What&apos;s included</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {listing.included.map((item) => (
-              <span key={item} className="rounded-pill border border-slate-200 px-3 py-1.5 text-sm text-slate-700">
-                {item}
+            {listing.included.map((inc) => (
+              <span key={inc} className="rounded-pill border border-slate-200 px-3 py-1.5 text-sm text-slate-700">
+                {inc}
               </span>
             ))}
           </div>
@@ -267,6 +311,13 @@ export default function DetailClient({ category, slug }: { category: Category; s
           >
             {compareLabel}
           </button>
+          <button
+            type="button"
+            className="mt-2 flex min-h-11 w-full items-center justify-center rounded-pill border border-slate-200 text-sm font-medium text-slate-800"
+            onClick={() => setShareOpen(true)}
+          >
+            Share
+          </button>
           {cancelUntil && (
             <p className="mt-3 text-sm text-emerald-700">Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}</p>
           )}
@@ -313,7 +364,12 @@ export default function DetailClient({ category, slug }: { category: Category; s
         onAudience={(a: Audience) => setAudience(a)}
         onAdults={(n) => setSearch((s) => ({ ...s, adults: n }))}
         onChildren={(n) => setSearch((s) => ({ ...s, children: n }))}
+        category={category}
+        soldOutDates={listing.soldOutDates}
+        minNights={listing.minNights}
       />
+
+      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} title={listing.title} url={shareUrl} />
 
       {lightbox && (
         <div

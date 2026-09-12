@@ -1,7 +1,27 @@
-import type { Listing } from "./types";
+import type { Listing, Review } from "./types";
 
 const u = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1600&q=80`;
+
+const REVIEW_POOL = [
+  { id: "r1", name: "Nusrat A.", date: "Aug 2026", text: "Clear all-in price and the host confirmed on WhatsApp within an hour. Would book again for a family weekend.", rating: 5 },
+  { id: "r2", name: "Imran H.", date: "Jul 2026", text: "Rooms matched the photos. Breakfast was simple but the ocean view made the trip.", rating: 5 },
+  { id: "r3", name: "Sara K.", date: "Jun 2026", text: "Easy demo booking flow — dates were honest when something was sold out. Staff were helpful on arrival.", rating: 4 },
+  { id: "r4", name: "Rahim C.", date: "May 2026", text: "Quiet enough for a work trip, invoice came through after payment. Location was convenient.", rating: 5 },
+  { id: "r5", name: "Lamia B.", date: "Apr 2026", text: "Kids loved it. Cot arrived as promised and the cancellation window was clearly shown.", rating: 4 },
+  { id: "r6", name: "Fahim R.", date: "Mar 2026", text: "Solo-friendly and well priced. No surprise fees at checkout — exactly what ATLAS promises.", rating: 5 },
+] as const;
+
+function reviewsFor(seed: number): Review[] {
+  const a = REVIEW_POOL[seed % REVIEW_POOL.length];
+  const b = REVIEW_POOL[(seed + 2) % REVIEW_POOL.length];
+  const c = REVIEW_POOL[(seed + 4) % REVIEW_POOL.length];
+  return [
+    { id: `${a.id}-${seed}a`, name: a.name, date: a.date, text: a.text, rating: a.rating },
+    { id: `${b.id}-${seed}b`, name: b.name, date: b.date, text: b.text, rating: b.rating },
+    { id: `${c.id}-${seed}c`, name: c.name, date: c.date, text: c.text, rating: c.rating },
+  ];
+}
 
 export const LISTINGS: Listing[] = [
   {
@@ -31,6 +51,9 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 2,
     distanceKm: 0.2,
     baseUnit: 8000,
+    soldOutDates: ["2026-09-13", "2026-09-20"],
+    minNights: 1,
+    reviews: reviewsFor(1),
     hostName: "ATLAS Cox Desk",
     hostPhone: "+8801712345001",
     hostEmail: "cox@atlas.demo",
@@ -61,6 +84,9 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 3,
     distanceKm: 0.1,
     baseUnit: 18500,
+    soldOutDates: ["2026-09-14"],
+    minNights: 2,
+    reviews: reviewsFor(2),
     hostName: "ATLAS Sylhet Desk",
     hostPhone: "+8801712345002",
     hostEmail: "sylhet@atlas.demo",
@@ -90,6 +116,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 4,
     distanceKm: 0.8,
     baseUnit: 6200,
+    reviews: reviewsFor(3),
     hostName: "ATLAS Coast Desk",
     hostPhone: "+8801712345003",
     hostEmail: "coast@atlas.demo",
@@ -116,6 +143,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 0,
     distanceKm: 1.4,
     baseUnit: 9500,
+    reviews: reviewsFor(4),
     hostName: "ATLAS Cox Desk",
     hostPhone: "+8801712345001",
     hostEmail: "cox@atlas.demo",
@@ -142,6 +170,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 3,
     distanceKm: 0.4,
     baseUnit: 11000,
+    reviews: reviewsFor(5),
     hostName: "ATLAS Sylhet Desk",
     hostPhone: "+8801712345002",
     hostEmail: "sylhet@atlas.demo",
@@ -167,6 +196,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 2,
     distanceKm: 0.6,
     baseUnit: 7200,
+    reviews: reviewsFor(6),
     hostName: "ATLAS Coast Desk",
     hostPhone: "+8801712345003",
     hostEmail: "coast@atlas.demo",
@@ -193,6 +223,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 5,
     distanceKm: 2.1,
     baseUnit: 8900,
+    reviews: reviewsFor(7),
     hostName: "ATLAS Cox Desk",
     hostPhone: "+8801712345001",
     hostEmail: "cox@atlas.demo",
@@ -239,6 +270,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 1,
     durationHours: 8,
     baseUnit: 3250,
+    reviews: reviewsFor(9),
     hostName: "ATLAS Coast Desk",
     hostPhone: "+8801712345003",
     hostEmail: "coast@atlas.demo",
@@ -265,6 +297,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 2,
     durationHours: 9,
     baseUnit: 4800,
+    reviews: reviewsFor(10),
     hostName: "ATLAS Cox Desk",
     hostPhone: "+8801712345001",
     hostEmail: "cox@atlas.demo",
@@ -288,6 +321,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 1,
     durationHours: 3,
     baseUnit: 2900,
+    reviews: reviewsFor(11),
     hostName: "ATLAS Sylhet Desk",
     hostPhone: "+8801712345002",
     hostEmail: "sylhet@atlas.demo",
@@ -311,6 +345,7 @@ export const LISTINGS: Listing[] = [
     cancelUntilDays: 1,
     durationHours: 2,
     baseUnit: 2200,
+    reviews: reviewsFor(12),
     hostName: "ATLAS Coast Desk",
     hostPhone: "+8801712345003",
     hostEmail: "coast@atlas.demo",
@@ -349,6 +384,7 @@ export const LISTINGS: Listing[] = [
     familyNotes: ["Warm layers recommended for evenings"],
     soloNotes: ["Ideal for a quiet reset"],
     houseRules: ["No smoking", "Check-in 1:00 PM"],
+    reviews: reviewsFor(13),
     hostName: "ATLAS Hills Desk",
     hostPhone: "+8801712345004",
     hostEmail: "hills@atlas.demo",
@@ -383,6 +419,7 @@ export const LISTINGS: Listing[] = [
     baseUnit: 4800,
     featured: false,
     corporateNotes: ["Invoice available"],
+    reviews: reviewsFor(14),
     hostName: "ATLAS Hills Desk",
     hostPhone: "+8801712345004",
     hostEmail: "hills@atlas.demo",

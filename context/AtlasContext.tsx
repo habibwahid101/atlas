@@ -59,7 +59,20 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
         setSearch({ ...defaultSearch, ...parsed, category: parsed.category || "stays" });
       }
       if (c) setCompare(JSON.parse(c));
-      if (b) setBookings(JSON.parse(b));
+      if (b) {
+        const parsed = JSON.parse(b) as Booking[];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        setBookings(
+          parsed.map((bk) => {
+            if (bk.status === "upcoming" && bk.to) {
+              const end = new Date(bk.to + "T00:00:00");
+              if (end < today) return { ...bk, status: "past" as const };
+            }
+            return bk;
+          })
+        );
+      }
     } catch {}
     setHydrated(true);
   }, []);
