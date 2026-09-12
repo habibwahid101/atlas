@@ -17,9 +17,9 @@ const TITLES: Record<Category, string> = {
 };
 
 const EMPTY_HEAD: Record<Category, (loc: string) => string> = {
-  stays: (loc) => (loc ? `No stays in ${loc}` : "No results"),
-  "day-trips": (loc) => (loc ? `No day trips in ${loc}` : "No results"),
-  recreation: (loc) => (loc ? `No recreation in ${loc}` : "No results"),
+  stays: (loc) => `No stays match ${loc || "your search"}.`,
+  "day-trips": (loc) => `No day trips match ${loc || "your search"}.`,
+  recreation: (loc) => `No recreation match ${loc || "your search"}.`,
 };
 
 const emptyFilters: Filters = {
@@ -165,12 +165,12 @@ export default function BrowsePage({ category }: { category: Category }) {
             ⌕
           </div>
           <h2 className="mt-4 font-display text-2xl text-slate-900">{EMPTY_HEAD[category](location)}</h2>
-          <p className="mt-2 max-w-md text-sm text-slate-600">Try another place or clear filters.</p>
+          <p className="mt-2 max-w-md text-sm text-slate-600">Widen the place, dates, or Who — or clear filters.</p>
           <button type="button" onClick={clearFilters} className="mt-6 min-h-11 rounded-pill bg-coral px-5 text-sm font-semibold text-white hover:bg-coral-700">
             Clear filters
           </button>
           <Link href="/" className="mt-3 min-h-11 text-sm font-medium text-slate-600 hover:text-slate-900">
-            Change search
+            Edit search
           </Link>
         </div>
       ) : (

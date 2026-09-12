@@ -14,11 +14,15 @@ export default function ConfirmClient({ id }: { id: string }) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
         <p className="font-display text-2xl tracking-wide">ATLAS</p>
-        <h1 className="mt-4 font-display text-2xl text-slate-900">We couldn’t find that booking</h1>
-        <p className="mt-2 text-slate-600">It may be from another browser, or the demo session was cleared. Start from stays whenever you’re ready.</p>
-        <Link href="/stays" className="mt-6 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
-          Back to stays
-        </Link>
+        <h1 className="mt-4 font-display text-2xl text-slate-900">This booking isn’t in this browser. Check out again, or open My trips.</h1>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/trips" className="inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
+            My trips
+          </Link>
+          <Link href="/stays" className="inline-flex rounded-pill border border-slate-200 px-5 py-3 text-sm font-medium text-slate-800">
+            Browse stays
+          </Link>
+        </div>
       </div>
     );
   }
@@ -49,7 +53,7 @@ export default function ConfirmClient({ id }: { id: string }) {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-slate-500">Demo total</p>
+                <p className="text-slate-500">Total paid</p>
                 <p className="text-lg font-semibold">{formatMoney(booking.total)}</p>
                 <p className="font-mono text-xs text-slate-500">{booking.ref}</p>
               </div>
@@ -68,7 +72,7 @@ export default function ConfirmClient({ id }: { id: string }) {
           rel="noreferrer"
           className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
         >
-          Get directions
+          Directions
         </a>
         <a
           href={`data:text/calendar,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ASUMMARY:${encodeURIComponent(booking.title)}%0ADTSTART:${booking.from.replace(/-/g, "")}%0ADTEND:${booking.to.replace(/-/g, "")}%0AEND:VEVENT%0AEND:VCALENDAR`}
@@ -78,11 +82,11 @@ export default function ConfirmClient({ id }: { id: string }) {
           Add to calendar
         </a>
         <Link href="/trips" className="min-h-11 rounded-pill bg-coral px-4 py-2 text-sm font-semibold text-white">
-          View in My trips
+          My trips
         </Link>
         {booking.audience === "Corporate" && (
           <Link href={`/bookings/${booking.id}/invoice`} className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium">
-            Download invoice PDF
+            Download invoice
           </Link>
         )}
       </div>

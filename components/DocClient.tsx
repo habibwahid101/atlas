@@ -12,10 +12,9 @@ export default function DocClient({ id, kind }: { id: string; kind: "voucher" | 
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <p className="font-display text-2xl tracking-wide">ATLAS</p>
-        <h1 className="mt-4 font-display text-2xl">We couldn’t open that document</h1>
-        <p className="mt-2 text-sm text-slate-600">The booking may be from another browser, or this demo session was cleared.</p>
-        <Link href="/stays" className="mt-6 inline-flex min-h-11 items-center rounded-pill bg-coral px-5 text-sm font-semibold text-white">
-          Back to stays
+        <h1 className="mt-4 font-display text-2xl">This voucher isn’t saved in this browser.</h1>
+        <Link href="/trips" className="mt-6 inline-flex min-h-11 items-center rounded-pill bg-coral px-5 text-sm font-semibold text-white">
+          My trips
         </Link>
       </div>
     );

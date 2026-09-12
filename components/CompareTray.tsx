@@ -22,16 +22,6 @@ export function CompareTray() {
 
   if (!compare.length) return null;
 
-  const cats = new Set(compare.map((l) => l.category));
-  const compareTitle =
-    cats.size > 1
-      ? "Compare"
-      : cats.has("day-trips")
-        ? "Compare day trips"
-        : cats.has("recreation")
-          ? "Compare recreation"
-          : "Compare stays";
-
   return (
     <>
       {!compareOpen && !onBook && (
@@ -45,7 +35,7 @@ export function CompareTray() {
               : "bottom-4"
           )}
         >
-          Compare · {compare.length}/3
+          Compare ({compare.length}/3)
         </button>
       )}
       {compareOpen && (
@@ -56,11 +46,11 @@ export function CompareTray() {
               role="status"
               className="mx-auto mb-3 max-w-6xl rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-sm text-amber-950"
             >
-              Compare up to 3 — remove one first.
+              Compare is full (3). Remove one to add another.
             </div>
           )}
           <div className="mx-auto flex max-w-6xl items-center justify-between">
-            <h2 className="text-lg font-semibold">{compareTitle} · {compare.length} of 3</h2>
+            <h2 className="text-lg font-semibold">Compare · {compare.length} of 3</h2>
             <button
               type="button"
               className="text-2xl leading-none text-slate-500"
@@ -98,14 +88,14 @@ export function CompareTray() {
                       <span>{l.freeCancellation ? "Yes" : "Non-refundable"}</span>
                     </li>
                     <li className="flex justify-between border-b border-slate-100 pb-2">
-                      <span>Who fit</span>
+                      <span>Best for</span>
                       <span>
                         {l.familyRooms
-                          ? "Family room"
+                          ? "Families"
                           : l.invoiceReady
-                            ? "Invoice ready"
+                            ? "Invoices"
                             : l.soloFriendly
-                              ? "Solo-friendly"
+                              ? "Solo"
                               : "—"}
                       </span>
                     </li>
@@ -128,7 +118,7 @@ export function CompareTray() {
                       href={`/book/${l.category}/${l.slug}`}
                       className="flex min-h-11 flex-1 items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white"
                     >
-                      Book
+                      Reserve
                     </Link>
                   </div>
                 </div>

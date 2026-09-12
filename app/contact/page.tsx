@@ -10,7 +10,7 @@ export default function Page() {
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-3xl text-slate-900">Contact</h1>
       <p className="mt-4 leading-relaxed text-slate-600">
-        Reach the ATLAS operator desk for booking questions. This is a product demo — responses may be delayed.
+        Questions about ATLAS — hello.habibwahid@gmail.com
       </p>
       <div className="mt-8 space-y-4 rounded-card border border-slate-200 bg-white p-5 text-sm text-slate-700">
         <p>

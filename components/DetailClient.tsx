@@ -44,13 +44,13 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
   let blockReason: string | null = null;
   if (search.audience === "Family" && listing.kidsAllowed === false) {
-    blockReason = "Kids are not allowed at this listing.";
+    blockReason = "This listing doesn’t take children.";
   }
   if (search.audience === "Corporate" && !listing.invoiceReady) {
-    blockReason = "Corporate invoice is unavailable for this listing.";
+    blockReason = "This listing doesn’t issue invoices.";
   }
 
-  const bookLabel = category === "stays" ? "Book this stay" : "Book this trip";
+  const bookLabel = category === "stays" ? "Reserve this stay" : "Reserve this trip";
   const notes =
     search.audience === "Family"
       ? listing.familyNotes
@@ -61,12 +61,11 @@ export default function DetailClient({ category, slug }: { category: Category; s
   const extra = Math.max(0, listing.images.length - 5);
   const thumbs = listing.images.slice(0, 5);
   const lineLabel = category === "stays" ? "Stay" : category === "day-trips" ? "Day trip" : "Activity";
-  const stickySub =
+  const nights = nightsBetween(search.from, search.to);
+  const stickyLine =
     category === "stays"
-      ? `total · ${nightsBetween(search.from, search.to)} nights · all-in`
-      : category === "day-trips"
-        ? "day · all-in"
-        : "session · all-in";
+      ? `${formatMoney(price.total)} total · ${nights.toLocaleString("en-BD")} nights · all-in`
+      : `${formatMoney(price.total)} total · all-in`;
 
   function onTouchStart(e: React.TouchEvent) {
     touchX.current = e.touches[0]?.clientX ?? null;
@@ -197,7 +196,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
           {notes && notes.length > 0 && (
             <div className="mt-6 rounded-card border border-slate-200 bg-white p-4">
               <p className="font-medium text-slate-900">
-                {search.audience === "Family" ? "Family notes" : search.audience === "Corporate" ? "Corporate notes" : "Solo notes"}
+                {search.audience === "Family" ? "For families" : search.audience === "Corporate" ? "For work trips" : "For solo travelers"}
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                 {notes.map((n) => (
@@ -235,11 +234,13 @@ export default function DetailClient({ category, slug }: { category: Category; s
             <p className="font-medium text-coral underline-offset-2 hover:underline">{formatShortRange(search.from, search.to)}</p>
             <p className="mt-3 text-sm text-slate-500">Guests</p>
             <p className="font-medium text-coral underline-offset-2 hover:underline">
-              {search.audience} · {guestSummary(search.adults, search.audience === "Corporate" ? 0 : search.children)}
+              {search.audience === "Single" ? "Solo" : search.audience === "Corporate" ? "Work" : "Family"} · {guestSummary(search.adults, search.audience === "Corporate" ? 0 : search.children)}
             </p>
           </button>
           <p className="mt-4 text-sm text-slate-500">
-            Total for {category === "stays" ? `${nightsBetween(search.from, search.to)} nights` : "your dates"} (all-in)
+            {category === "stays"
+              ? `Total for ${nightsBetween(search.from, search.to)} nights · all-in`
+              : "Total for this booking"}
           </p>
           <p className="font-display text-3xl text-slate-900">{formatMoney(price.total)}</p>
           <ul className="mt-2 space-y-1 text-xs text-slate-500">
@@ -287,8 +288,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </div>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="font-semibold text-slate-900">{formatMoney(price.total)}</p>
-            <p className="text-xs text-slate-500">{stickySub}</p>
+            <p className="font-semibold text-slate-900">{stickyLine}</p>
           </div>
           {!blockReason ? (
             <Link href={`/book/${category}/${slug}`} className="min-h-11 shrink-0 rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">

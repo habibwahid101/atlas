@@ -23,14 +23,14 @@ export function FilterChips({
   setFilters: (f: Filters) => void;
 }) {
   const lensLabel =
-    audience === "Family" ? "Family rooms" : audience === "Corporate" ? "Invoice ready" : "Solo-friendly";
+    audience === "Family" ? "Family rooms" : audience === "Corporate" ? "Invoice on request" : "Solo-friendly";
 
   const chips: { key: keyof Filters; label: string; show?: boolean }[] = [
-    { key: "rating45", label: "Rating 4.5+" },
+    { key: "rating45", label: "4.5+ rating" },
     { key: "freeCancel", label: "Free cancellation" },
     { key: "lensFit", label: lensLabel },
     { key: "beachfront", label: "Beachfront", show: category === "stays" },
-    { key: "durationShort", label: "Duration ≤ 4h", show: category !== "stays" },
+    { key: "durationShort", label: "Under 4 hours", show: category !== "stays" },
   ];
 
   return (

@@ -42,7 +42,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
   }, [listing, search]);
 
   if (!listing || !price) {
-    return <div className="p-8">Listing not found.</div>;
+    return <div className="p-8">We couldn’t find that listing.</div>;
   }
 
   const corporate = search.audience === "Corporate";
@@ -52,12 +52,12 @@ export default function BookClient({ category, slug }: { category: Category; slu
 
   function validateStep2() {
     const next: Record<string, string> = {};
-    if (!name.trim()) next.name = "Enter full name.";
-    if (!email.trim() || !email.includes("@")) next.email = "Enter a valid email.";
-    if (!mobile.trim() || mobile.replace(/\D/g, "").length < 10) next.mobile = "Enter a valid mobile number.";
+    if (!name.trim()) next.name = "Add your full name.";
+    if (!email.trim() || !email.includes("@")) next.email = "Enter a real email.";
+    if (!mobile.trim() || mobile.replace(/\D/g, "").length < 10) next.mobile = "Enter a valid +880 mobile.";
     if (corporate) {
-      if (!company.trim()) next.company = "Enter company name.";
-      if (!billingEmail.trim() || !billingEmail.includes("@")) next.billingEmail = "Enter billing email.";
+      if (!company.trim()) next.company = "Add the company name.";
+      if (!billingEmail.trim() || !billingEmail.includes("@")) next.billingEmail = "Add a billing email.";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -143,9 +143,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   value={search.audience}
                   onChange={(e) => setAudience(e.target.value as Audience)}
                 >
-                  <option value="Single">Single · 1 adult</option>
-                  <option value="Family">Family</option>
-                  <option value="Corporate">Corporate · 1 adult</option>
+                  <option value="Single">Solo · 1 adult</option>
+                  <option value="Family">{`Family · ${search.adults} adult${search.adults === 1 ? "" : "s"}, ${search.children} ${search.children === 1 ? "child" : "children"}`}</option>
+                  <option value="Corporate">Work · 1 adult</option>
                 </select>
               </label>
               <div className="sm:col-span-2">
@@ -157,6 +157,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   onChildren={(n) => setSearch((s) => ({ ...s, children: n }))}
                 />
               </div>
+              <p className="sm:col-span-2 text-xs text-slate-500">
+                To change dates, go back and search again on the listing.
+              </p>
             </div>
           </section>
 
@@ -164,29 +167,29 @@ export default function BookClient({ category, slug }: { category: Category; slu
             <button type="button" className="flex w-full items-center justify-between text-left" onClick={() => setStep(2)}>
               <div className="flex items-center gap-3">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-coral text-sm font-bold text-white">2</span>
-                <p className="font-medium">Guest details</p>
+                <p className="font-medium">Your details</p>
               </div>
             </button>
             {step === 2 && (
               <div className="mt-4 space-y-3">
                 <AudienceChip label={search.audience} />
-                <Field label="Full name" value={name} onChange={setName} error={errors.name} errorKey="name" clearError={clearError} placeholder="Enter full name." />
-                <Field label={corporate ? "Work email" : "Email"} value={email} onChange={setEmail} error={errors.email} errorKey="email" clearError={clearError} placeholder="Enter email address." />
+                <Field label="Full name" value={name} onChange={setName} error={errors.name} errorKey="name" clearError={clearError} />
+                <Field label="Email" value={email} onChange={setEmail} error={errors.email} errorKey="email" clearError={clearError} />
                 <div>
                   <label className="text-sm font-medium">Mobile (+880)</label>
                   <div className="mt-1 flex gap-2">
                     <span className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-3 text-sm text-coral">+880</span>
-                    <input className="min-h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm" value={mobile} onChange={(e) => { setMobile(e.target.value); clearError("mobile"); }} placeholder="Enter mobile number." />
+                    <input className="min-h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm" value={mobile} onChange={(e) => { setMobile(e.target.value); clearError("mobile"); }} />
                   </div>
                   {errors.mobile && <p className="mt-1 text-xs text-coral">{errors.mobile}</p>}
                 </div>
                 {corporate && (
                   <div className="rounded-xl border border-slate-100 bg-sand-50 p-3">
                     <p className="mb-3 text-sm font-semibold">Company details</p>
-                    <Field label="Company name" value={company} onChange={setCompany} error={errors.company} errorKey="company" clearError={clearError} placeholder="Enter company name." />
-                    <Field label="Billing email" value={billingEmail} onChange={setBillingEmail} error={errors.billingEmail} errorKey="billingEmail" clearError={clearError} placeholder="Enter billing email." />
-                    <Field label="TIN / VAT" value={tin} onChange={setTin} errorKey="tin" clearError={clearError} placeholder="Enter TIN / VAT (optional)." />
-                    <p className="mt-2 text-xs text-slate-500">Please ensure all details are accurate. This information will be used for invoicing.</p>
+                    <Field label="Company name" value={company} onChange={setCompany} error={errors.company} errorKey="company" clearError={clearError} />
+                    <Field label="Billing email" value={billingEmail} onChange={setBillingEmail} error={errors.billingEmail} errorKey="billingEmail" clearError={clearError} />
+                    <Field label="TIN / VAT" value={tin} onChange={setTin} errorKey="tin" clearError={clearError} />
+                    <p className="mt-2 text-xs text-slate-500">We’ll use these details on the invoice PDF.</p>
                   </div>
                 )}
                 <button
@@ -209,7 +212,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
             </button>
             {step === 3 && (
               <div className="mt-4">
-                <p className="mb-3 text-sm text-slate-500">Choose your preferred payment method</p>
+                <p className="mb-3 text-sm text-slate-500">Choose a payment method</p>
                 <div className="grid grid-cols-2 gap-3">
                   {METHODS.map((m) => (
                     <button
@@ -226,24 +229,24 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   <span>Total due</span>
                   <strong>{formatMoney(price.total)}</strong>
                 </div>
-                <p className="mt-4 rounded-xl bg-sand-50 px-3 py-2 text-xs font-medium text-slate-700">
+                <p className="mb-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-sm text-amber-950">
                   Demo only — no money moves. This is not a real charge.
                 </p>
                 <button
                   type="button"
                   disabled={!method || !validateSilent()}
                   onClick={pay}
-                  className="mt-2 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Complete demo payment · BDT {price.total.toLocaleString("en-BD")}
                 </button>
                 {cancelUntil && (
                   <p className="mt-2 text-center text-xs text-emerald-700">
-                    Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}. Download your voucher after payment.
+                    Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}. Your voucher downloads after you confirm.
                   </p>
                 )}
                 {corporate && (
-                  <p className="mt-2 text-center text-xs text-slate-500">Invoice PDF will be available after payment.</p>
+                  <p className="mt-2 text-center text-xs text-slate-500">Invoice PDF unlocks after you confirm.</p>
                 )}
               </div>
             )}
@@ -260,7 +263,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
         <p className="mt-2 text-sm text-slate-600">
           {category === "stays"
             ? `${nightsBetween(search.from, search.to)} nights · ${formatShortRange(search.from, search.to)}`
-            : formatShortRange(search.from, search.to)}
+            : `1 experience · ${formatShortRange(search.from, search.to)}`}
         </p>
         <ul className="mt-4 space-y-1 border-t border-slate-100 pt-3 text-sm text-slate-600">
           <li className="flex justify-between"><span>{category === "stays" ? "Stay" : category === "day-trips" ? "Day trip" : "Activity"}</span><span>{formatMoney(price.base)}</span></li>

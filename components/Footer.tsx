@@ -39,7 +39,9 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
           <p className="font-display text-lg tracking-wide text-slate-900">ATLAS</p>
-          <p className="mt-2 max-w-xs text-sm text-slate-500">Bangladesh stays, day trips, and recreation.</p>
+          <p className="mt-2 max-w-xs text-sm text-slate-500">
+            Bangladesh stays, day trips, and recreation — clear prices, guest checkout.
+          </p>
         </div>
         <Col title="Explore" links={EXPLORE} />
         <Col title="Support" links={SUPPORT} />

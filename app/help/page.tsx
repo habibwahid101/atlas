@@ -11,8 +11,7 @@ export default function Page() {
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-3xl text-slate-900">Help</h1>
       <p className="mt-4 leading-relaxed text-slate-600">
-        Browse stays, day trips, and recreation, compare up to three options, then book with all-in pricing.
-        Guest checkout is available. Manage upcoming bookings in My trips.
+        How ATLAS works — Search stays, day trips, or recreation. Compare up to three. Book with the full (all-in) price shown. Guest checkout works now. To change or cancel, open My trips.
       </p>
       <div className="mt-8 rounded-card border border-slate-200 bg-white p-5">
         <h2 className="font-medium text-slate-900">Operator support</h2>

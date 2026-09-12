@@ -61,10 +61,8 @@ export default function TripsPage() {
         <div className="mt-12 text-center text-slate-600">
           <p>
             {tab === "upcoming"
-              ? "No upcoming trips yet. Browse stays, day trips, and recreation."
-              : tab === "past"
-                ? "No past trips here yet."
-                : "No cancelled trips."}
+              ? "No upcoming trips yet. Browse stays, day trips, or recreation."
+              : `No ${tab} trips.`}
           </p>
           <Link href="/stays" className="mt-4 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
             Browse ATLAS
@@ -145,14 +143,14 @@ export default function TripsPage() {
                 className="min-h-11 rounded-pill border border-slate-200 px-4 text-sm font-medium"
                 onClick={() => setConfirmId(null)}
               >
-                Keep booking
+                Keep it
               </button>
               <button
                 type="button"
                 className="min-h-11 rounded-pill bg-coral px-4 text-sm font-semibold text-white hover:bg-coral-700"
                 onClick={confirmCancel}
               >
-                Cancel booking
+                Yes, cancel
               </button>
             </div>
           </div>

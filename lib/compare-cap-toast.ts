@@ -1,4 +1,4 @@
-export const COMPARE_CAP_MESSAGE = "Compare up to 3 — remove one first.";
+export const COMPARE_CAP_MESSAGE = "Compare is full (3). Remove one to add another.";
 
 type Listener = (message: string) => void;
 

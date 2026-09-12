@@ -59,9 +59,9 @@ export function DatesGuestsSheet({
         <label className="mt-3 block text-sm font-medium">
           Who
           <select className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" value={audience} onChange={(e) => onAudience(e.target.value as Audience)}>
-            <option value="Single">Single</option>
-            <option value="Family">Family</option>
-            <option value="Corporate">Corporate</option>
+            <option value="Single">Solo · 1 adult</option>
+            <option value="Family">{`Family · ${adults} adult${adults === 1 ? "" : "s"}, ${childrenCount} ${childrenCount === 1 ? "child" : "children"}`}</option>
+            <option value="Corporate">Work · 1 adult</option>
           </select>
         </label>
         <div className="mt-4">

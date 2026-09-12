@@ -42,10 +42,11 @@ export function SearchPill({
 
   function whoLabel() {
     if (search.audience === "Family") {
-      return `Family · ${search.adults} adult${search.adults > 1 ? "s" : ""}, ${search.children} child${search.children === 1 ? "" : "ren"}`;
+      const childWord = search.children === 1 ? "child" : "children";
+      return `Family · ${search.adults} adult${search.adults === 1 ? "" : "s"}, ${search.children} ${childWord}`;
     }
-    if (search.audience === "Corporate") return "Corporate · 1 adult";
-    return "Single · 1 adult";
+    if (search.audience === "Corporate") return "Work · 1 adult";
+    return "Solo · 1 adult";
   }
 
   function bump(field: "adults" | "children", delta: number) {
@@ -120,9 +121,9 @@ export function SearchPill({
               value={search.audience}
               onChange={(e) => setAudience(e.target.value as Audience)}
             >
-              <option value="Single">Single</option>
-              <option value="Family">Family</option>
-              <option value="Corporate">Corporate</option>
+              <option value="Single">Solo · 1 adult</option>
+              <option value="Family">{`Family · ${search.adults} adult${search.adults === 1 ? "" : "s"}, ${search.children} ${search.children === 1 ? "child" : "children"}`}</option>
+              <option value="Corporate">Work · 1 adult</option>
             </select>
             {search.audience === "Family" ? (
               <div className="mt-3 space-y-3">

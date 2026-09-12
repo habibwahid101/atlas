@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchPill } from "@/components/SearchPill";
 import { ListingCard } from "@/components/ListingCard";
-import { featuredListings, categoryHasInventory, LISTINGS } from "@/lib/data";
+import { featuredListings, LISTINGS } from "@/lib/data";
 import { useAtlas } from "@/context/AtlasContext";
 import type { Category, Listing } from "@/lib/types";
 
@@ -31,6 +31,12 @@ function DestinationRow({ title, place, href }: { title: string; place: string; 
   );
 }
 
+function featuredSeeAllLabel(cat: Category) {
+  if (cat === "stays") return "See all stays";
+  if (cat === "day-trips") return "See all day trips";
+  return "See all recreation";
+}
+
 export default function HomePage() {
   const { search } = useAtlas();
   const featured = featuredListings();
@@ -48,17 +54,19 @@ export default function HomePage() {
             className="object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-          <div className="absolute inset-x-0 bottom-4 flex flex-col items-center gap-3 px-3 sm:bottom-8">
-            <div className="max-w-2xl text-center text-white drop-shadow">
-              <h1 className="font-display text-2xl leading-tight sm:text-4xl">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-start px-4 py-10 sm:py-14">
+            <div className="mx-auto w-full max-w-3xl">
+              <h1 className="max-w-[20ch] font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl sm:max-w-[28ch] lg:text-5xl">
                 Book Bangladesh with the full price up front
               </h1>
-              <p className="mt-2 text-sm text-white/90 sm:text-base">
-                Stays, day trips, and recreation — all-in BDT, no surprise fees.
+              <p className="mt-3 max-w-xl text-base leading-snug text-white/90 sm:text-lg">
+                Stays, day trips, and recreation. Filter by Single, Family, or Corporate — then compare and book.
               </p>
+              <div className="mt-6">
+                <SearchPill />
+              </div>
             </div>
-            <SearchPill />
           </div>
         </div>
       </section>
@@ -68,7 +76,7 @@ export default function HomePage() {
           <div className="mb-6 flex items-end justify-between">
             <h2 className="font-display text-2xl text-slate-900">Worth booking this week</h2>
             <Link href={`/${featuredCat}`} className="text-sm font-medium text-coral">
-              View all
+              {featuredSeeAllLabel(featuredCat)}
             </Link>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
