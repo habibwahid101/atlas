@@ -16,6 +16,9 @@ export type Listing = {
   title: string;
   location: string;
   place: string;
+  /** WGS84 latitude / longitude for static map */
+  lat: number;
+  lng: number;
   description: string;
   rating: number;
   reviewCount: number;

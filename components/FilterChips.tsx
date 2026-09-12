@@ -9,6 +9,8 @@ export type Filters = {
   lensFit: boolean;
   beachfront: boolean;
   durationShort: boolean;
+  breakfast: boolean;
+  kidsWelcome: boolean;
 };
 
 export function FilterChips({
@@ -30,6 +32,8 @@ export function FilterChips({
     { key: "freeCancel", label: "Free cancellation" },
     { key: "lensFit", label: lensLabel },
     { key: "beachfront", label: "Beachfront", show: category === "stays" },
+    { key: "breakfast", label: "Breakfast included", show: category === "stays" },
+    { key: "kidsWelcome", label: "Kids welcome", show: category === "stays" },
     { key: "durationShort", label: "Under 4 hours", show: category !== "stays" },
   ];
 

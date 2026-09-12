@@ -8,6 +8,7 @@ import { useAtlas } from "@/context/AtlasContext";
 import { priceForListing } from "@/lib/pricing";
 import { formatMoney } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { IconClose } from "@/components/Icons";
 
 export function CompareTray() {
   const { compare, removeCompare, compareOpen, setCompareOpen, search } = useAtlas();
@@ -121,11 +122,11 @@ export function CompareTray() {
               <button
                 ref={closeRef}
                 type="button"
-                className="text-2xl leading-none text-slate-500"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center text-slate-500"
                 onClick={() => setCompareOpen(false)}
                 aria-label="Close"
               >
-                ×
+                <IconClose />
               </button>
             </div>
             <div className="mx-auto mt-4 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3">

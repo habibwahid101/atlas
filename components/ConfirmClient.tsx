@@ -77,13 +77,16 @@ export default function ConfirmClient({ id }: { id: string }) {
         >
           Directions
         </a>
-        <a
-          href={`data:text/calendar,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ASUMMARY:${encodeURIComponent(booking.title)}%0ADTSTART:${booking.from.replace(/-/g, "")}%0ADTEND:${booking.to.replace(/-/g, "")}%0AEND:VEVENT%0AEND:VCALENDAR`}
-          download={`${booking.ref}.ics`}
-          className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
-        >
-          Add to calendar
-        </a>
+        <div className="flex flex-col gap-1">
+          <a
+            href={`data:text/calendar,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ASUMMARY:${encodeURIComponent(booking.title)}%0ADTSTART:${booking.from.replace(/-/g, "")}%0ADTEND:${booking.to.replace(/-/g, "")}%0AEND:VEVENT%0AEND:VCALENDAR`}
+            download={`${booking.ref}.ics`}
+            className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
+          >
+            Add to calendar
+          </a>
+          <p className="px-1 text-xs text-slate-500">Basic calendar file — times may be all-day.</p>
+        </div>
         <button
           type="button"
           className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
@@ -101,7 +104,11 @@ export default function ConfirmClient({ id }: { id: string }) {
         )}
       </div>
 
-      <p className="mt-6 text-sm text-slate-500">
+      <p className="mt-4 text-sm text-slate-500">
+        No confirmation email in demo — save this page or your voucher.
+      </p>
+
+      <p className="mt-4 text-sm text-slate-500">
         Free cancellation until {formatShortRange(booking.cancelUntil, booking.cancelUntil).split("–")[0]}. Manage this booking in{" "}
         <Link href="/trips" className="font-medium text-slate-800">My trips</Link>.
       </p>

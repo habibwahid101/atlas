@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Audience, Listing } from "@/lib/types";
 import { fromPriceLabel } from "@/lib/pricing";
-import { fitBadge } from "@/lib/utils";
+import { BLUR_DATA_URL, fitBadge } from "@/lib/utils";
 
 export function ListingCard({
   listing,
@@ -17,13 +17,16 @@ export function ListingCard({
   const href = `/${listing.category}/${listing.slug}`;
   return (
     <Link href={href} className="group block">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-stone-200">
         <Image
           src={listing.images[0]}
           alt={listing.title}
           fill
           className="object-cover transition duration-500 group-hover:scale-[1.03]"
-          sizes="(max-width:768px) 100vw, 33vw"
+          sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
+          placeholder="blur"
+          blurDataURL={BLUR_DATA_URL}
+          loading="lazy"
         />
         {badge && (
           <span className="absolute bottom-3 left-3 rounded-pill bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-800 shadow-sm">

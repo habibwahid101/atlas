@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { SearchPill } from "@/components/SearchPill";
 import { ListingCard } from "@/components/ListingCard";
 import { featuredListings, LISTINGS } from "@/lib/data";
 import { useAtlas } from "@/context/AtlasContext";
 import type { Category, Listing } from "@/lib/types";
+import { BLUR_DATA_URL } from "@/lib/utils";
 
 function DestinationRow({ title, place, href }: { title: string; place: string; href: string }) {
   const { search } = useAtlas();
@@ -42,6 +44,15 @@ export default function HomePage() {
   const featured = featuredListings();
   const featuredCat: Category = featured[0]?.category || "stays";
 
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("focus") !== "search") return;
+    const el = document.getElementById("search-pill");
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const input = el?.querySelector<HTMLInputElement>("input");
+    input?.focus();
+  }, []);
+
   return (
     <div>
       <section className="relative mx-auto max-w-6xl px-4 pt-6 sm:px-6">
@@ -51,6 +62,8 @@ export default function HomePage() {
             alt="Coastal stay"
             fill
             priority
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URL}
             className="object-cover"
             sizes="100vw"
           />

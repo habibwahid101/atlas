@@ -28,6 +28,8 @@ const emptyFilters: Filters = {
   lensFit: false,
   beachfront: false,
   durationShort: false,
+  breakfast: false,
+  kidsWelcome: false,
 };
 
 type SortKey = "recommended" | "price-asc" | "price-desc" | "rating";
@@ -81,6 +83,12 @@ export default function BrowsePage({ category }: { category: Category }) {
       if (who === "Single") list = list.filter((l) => l.soloFriendly);
     }
     if (filters.beachfront) list = list.filter((l) => l.beachfront);
+    if (filters.breakfast) {
+      list = list.filter((l) =>
+        l.included.some((inc) => inc.toLowerCase().includes("breakfast"))
+      );
+    }
+    if (filters.kidsWelcome) list = list.filter((l) => l.kidsAllowed !== false);
     if (filters.durationShort) list = list.filter((l) => (l.durationHours ?? 99) <= 4);
 
     const guests = search.adults + search.children;

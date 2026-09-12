@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { categoryHasInventory } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { IconClose, IconMenu } from "@/components/Icons";
 
 const NAV = [
   { href: "/stays", label: "Stays", cat: "stays" },
@@ -14,18 +15,40 @@ const NAV = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const items = NAV.filter((n) => categoryHasInventory(n.cat));
 
   useEffect(() => {
-    if (!signInOpen) return;
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!signInOpen && !menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSignInOpen(false);
+      if (e.key === "Escape") {
+        setSignInOpen(false);
+        setMenuOpen(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [signInOpen]);
+  }, [signInOpen, menuOpen]);
+
+  function goSearch() {
+    setMenuOpen(false);
+    if (pathname === "/") {
+      queueMicrotask(() => {
+        const el = document.getElementById("search-pill");
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        const input = el?.querySelector<HTMLInputElement>("input");
+        input?.focus();
+      });
+    } else {
+      router.push("/?focus=search");
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-sand-50/90 backdrop-blur">
@@ -69,12 +92,12 @@ export function Header() {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            {menuOpen ? "✕" : "☰"}
+            {menuOpen ? <IconClose /> : <IconMenu />}
           </button>
         </div>
       </div>
       {menuOpen && (
-        <nav className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
+        <nav className="border-t border-slate-100 bg-white px-4 py-3 md:hidden" aria-label="Mobile">
           <ul className="flex flex-col gap-1">
             {items.map((n) => {
               const active = pathname.startsWith(n.href);
@@ -93,6 +116,39 @@ export function Header() {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/trips"
+                onClick={() => setMenuOpen(false)}
+                className={cn(
+                  "flex min-h-11 items-center rounded-xl px-3 text-sm font-medium",
+                  pathname.startsWith("/trips") ? "bg-coral/10 text-coral" : "text-slate-700"
+                )}
+              >
+                My trips
+              </Link>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center rounded-xl px-3 text-sm font-medium text-slate-700"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setSignInOpen(true);
+                }}
+              >
+                Sign in
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="flex min-h-11 w-full items-center rounded-xl px-3 text-sm font-medium text-slate-700"
+                onClick={goSearch}
+              >
+                Search
+              </button>
+            </li>
           </ul>
         </nav>
       )}

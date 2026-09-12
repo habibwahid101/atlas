@@ -112,7 +112,10 @@ export default function BookClient({ category, slug }: { category: Category; slu
     return true;
   }
 
+  const payDisabled = !!dateError || !method || !validateSilent();
+
   return (
+    <>
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_340px] sm:px-6">
       <div>
         <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
@@ -246,9 +249,9 @@ export default function BookClient({ category, slug }: { category: Category; slu
                 </p>
                 <button
                   type="button"
-                  disabled={!!dateError || !method || !validateSilent()}
+                  disabled={payDisabled}
                   onClick={pay}
-                  className="flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="hidden min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 lg:flex"
                 >
                   Complete demo payment · BDT {price.total.toLocaleString("en-BD")}
                 </button>
@@ -264,6 +267,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
             )}
           </section>
         </div>
+        {step === 3 && <div className="h-28 lg:hidden" aria-hidden />}
       </div>
 
       <aside className="h-fit rounded-card border border-slate-200 bg-white p-4 shadow-soft lg:sticky lg:top-24">
@@ -296,6 +300,21 @@ export default function BookClient({ category, slug }: { category: Category; slu
         </Link>
       </aside>
     </div>
+
+    {step === 3 && (
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <p className="mb-2 text-center text-xs font-medium text-amber-900">Demo only — no charge</p>
+        <button
+          type="button"
+          disabled={payDisabled}
+          onClick={pay}
+          className="flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Complete demo payment · BDT {price.total.toLocaleString("en-BD")}
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 

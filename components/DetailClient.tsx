@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
 import { ShareSheet } from "@/components/ShareSheet";
+import { IconClose } from "@/components/Icons";
+import { BLUR_DATA_URL } from "@/lib/utils";
 import { COMPARE_CAP_MESSAGE, emitCompareCapToast } from "@/lib/compare-cap-toast";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
@@ -143,8 +145,10 @@ export default function DetailClient({ category, slug }: { category: Category; s
             alt={`${listing.title} — photo ${active + 1}`}
             fill
             className="object-cover"
-            priority
-            sizes="100vw"
+            priority={active === 0}
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URL}
+            sizes="(max-width:1024px) 100vw, 1200px"
           />
         </button>
         <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
@@ -166,7 +170,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
                 aria-label={isLastOverlay ? `Open gallery, ${extra} more photos` : `Show ${listing.title} — photo ${i + 1}`}
                 aria-pressed={active === i}
               >
-                <Image src={src} alt={`${listing.title} — photo ${i + 1}`} fill className="object-cover" sizes="112px" />
+                <Image src={src} alt={`${listing.title} — photo ${i + 1}`} fill className="object-cover" sizes="112px" loading="lazy" placeholder="blur" blurDataURL={BLUR_DATA_URL} />
                 {isLastOverlay && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-medium text-white">
                     +{extra}
@@ -235,6 +239,30 @@ export default function DetailClient({ category, slug }: { category: Category; s
                 Email
               </a>
             </div>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Location</h2>
+            <div className="mt-3 overflow-hidden rounded-card border border-slate-200 bg-stone-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://staticmap.openstreetmap.de/staticmap.php?center=${listing.lat},${listing.lng}&zoom=13&size=600x300&markers=${listing.lat},${listing.lng},red-pushpin`}
+                alt={`Map of ${listing.place}, Bangladesh`}
+                width={600}
+                height={300}
+                className="h-auto w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            <p className="mt-2 text-sm text-slate-600">{listing.place}, Bangladesh</p>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${listing.lat},${listing.lng}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-coral hover:underline"
+            >
+              Get directions
+            </a>
           </section>
 
           {notes && notes.length > 0 && (
@@ -384,8 +412,8 @@ export default function DetailClient({ category, slug }: { category: Category; s
             <p className="text-sm">
               {active + 1} / {listing.images.length}
             </p>
-            <button type="button" className="min-h-11 min-w-11 rounded-full text-lg" onClick={() => setLightbox(false)} aria-label="Close gallery">
-              ✕
+            <button type="button" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-white" onClick={() => setLightbox(false)} aria-label="Close gallery">
+              <IconClose className="h-6 w-6" />
             </button>
           </div>
           <div className="relative flex flex-1 items-center justify-center px-4">

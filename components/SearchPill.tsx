@@ -65,6 +65,7 @@ export function SearchPill({
 
   return (
     <form
+      id="search-pill"
       onSubmit={submit}
       className={`relative flex w-full flex-col gap-2 rounded-card bg-white p-2 shadow-soft sm:flex-row sm:items-center sm:rounded-pill sm:p-2 ${
         compact ? "" : "sm:max-w-3xl"
