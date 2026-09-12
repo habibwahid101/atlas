@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AudienceChip } from "@/components/AudienceChip";
+import { GuestSteppers } from "@/components/GuestSteppers";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing, makeBookingRef } from "@/lib/data";
 import { priceForListing } from "@/lib/pricing";
@@ -147,36 +148,15 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   <option value="Corporate">Corporate · 1 adult</option>
                 </select>
               </label>
-              {search.audience === "Family" && (
-                <>
-                  <label className="text-sm font-medium">
-                    Adults
-                    <input
-                      type="number"
-                      min={1}
-                      max={8}
-                      className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
-                      value={search.adults}
-                      onChange={(e) =>
-                        setSearch((s) => ({ ...s, adults: Math.min(8, Math.max(1, Number(e.target.value) || 1)) }))
-                      }
-                    />
-                  </label>
-                  <label className="text-sm font-medium">
-                    Children
-                    <input
-                      type="number"
-                      min={0}
-                      max={6}
-                      className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
-                      value={search.children}
-                      onChange={(e) =>
-                        setSearch((s) => ({ ...s, children: Math.min(6, Math.max(0, Number(e.target.value) || 0)) }))
-                      }
-                    />
-                  </label>
-                </>
-              )}
+              <div className="sm:col-span-2">
+                <GuestSteppers
+                  audience={search.audience}
+                  adults={search.adults}
+                  childCount={search.children}
+                  onAdults={(n) => setSearch((s) => ({ ...s, adults: n }))}
+                  onChildren={(n) => setSearch((s) => ({ ...s, children: n }))}
+                />
+              </div>
             </div>
           </section>
 
@@ -281,7 +261,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
           {nightsBetween(search.from, search.to)} nights · {formatShortRange(search.from, search.to)}
         </p>
         <ul className="mt-4 space-y-1 border-t border-slate-100 pt-3 text-sm text-slate-600">
-          <li className="flex justify-between"><span>Room / ticket</span><span>{formatMoney(price.base)}</span></li>
+          <li className="flex justify-between"><span>{category === "stays" ? "Stay" : category === "day-trips" ? "Day trip" : "Activity"}</span><span>{formatMoney(price.base)}</span></li>
           <li className="flex justify-between"><span>Service</span><span>{formatMoney(price.service)}</span></li>
           <li className="flex justify-between"><span>Tax</span><span>{formatMoney(price.tax)}</span></li>
           <li className="flex justify-between border-t border-slate-100 pt-2 font-semibold text-slate-900">

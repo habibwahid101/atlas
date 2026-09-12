@@ -52,8 +52,8 @@ export function SearchPill({
     setSearch((s) => {
       if (s.audience !== "Family") return s;
       const next = { ...s };
-      if (field === "adults") next.adults = Math.min(8, Math.max(1, s.adults + delta));
-      else next.children = Math.min(6, Math.max(0, s.children + delta));
+      if (field === "adults") next.adults = Math.min(16, Math.max(1, s.adults + delta));
+      else next.children = Math.min(10, Math.max(0, s.children + delta));
       return next;
     });
   }

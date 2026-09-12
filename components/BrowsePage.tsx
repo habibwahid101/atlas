@@ -43,8 +43,11 @@ export default function BrowsePage({ category }: { category: Category }) {
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [sort, setSort] = useState<SortKey>("recommended");
-  const [priceBand, setPriceBand] = useState<"any" | "under8k" | "8to20k" | "over20k">("any");
-
+  const [priceOpen, setPriceOpen] = useState(false);
+  const [minInput, setMinInput] = useState("");
+  const [maxInput, setMaxInput] = useState("");
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   useEffect(() => {
     setCategory(category);
     if (params.get("who")) setAudience(who);
@@ -81,30 +84,48 @@ export default function BrowsePage({ category }: { category: Category }) {
     if (filters.durationShort) list = list.filter((l) => (l.durationHours ?? 99) <= 4);
 
     const guests = search.adults + search.children;
-    const withPrice = list.map((l) => ({
+    let priced = list.map((l) => ({
       l,
       total: priceForListing(l, search.from, search.to, guests).total,
     }));
-
-    let priced = withPrice;
-    if (priceBand === "under8k") priced = priced.filter((x) => x.total < 8000);
-    if (priceBand === "8to20k") priced = priced.filter((x) => x.total >= 8000 && x.total <= 20000);
-    if (priceBand === "over20k") priced = priced.filter((x) => x.total > 20000);
+    if (minPrice != null) priced = priced.filter((x) => x.total >= minPrice);
+    if (maxPrice != null) priced = priced.filter((x) => x.total <= maxPrice);
 
     if (sort === "price-asc") priced = [...priced].sort((a, b) => a.total - b.total);
     else if (sort === "price-desc") priced = [...priced].sort((a, b) => b.total - a.total);
     else if (sort === "rating") priced = [...priced].sort((a, b) => b.l.rating - a.l.rating);
 
     return priced.map((x) => x.l);
-  }, [category, location, locationQueried, filters, who, sort, priceBand, search]);
+  }, [category, location, locationQueried, filters, who, sort, minPrice, maxPrice, search]);
 
   function clearFilters() {
     setFilters(emptyFilters);
-    setPriceBand("any");
     setSort("recommended");
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinInput("");
+    setMaxInput("");
     setSearch((s) => ({ ...s, location: "" }));
     router.push(`/${category}`);
   }
+
+  function applyPrice() {
+    const min = minInput.trim() === "" ? null : Number(minInput);
+    const max = maxInput.trim() === "" ? null : Number(maxInput);
+    setMinPrice(min != null && !Number.isNaN(min) ? min : null);
+    setMaxPrice(max != null && !Number.isNaN(max) ? max : null);
+    setPriceOpen(false);
+  }
+
+  function clearPrice() {
+    setMinInput("");
+    setMaxInput("");
+    setMinPrice(null);
+    setMaxPrice(null);
+    setPriceOpen(false);
+  }
+
+  const priceActive = minPrice != null || maxPrice != null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -114,46 +135,38 @@ export default function BrowsePage({ category }: { category: Category }) {
       <p className="mt-1 text-sm text-slate-500">
         {matched.length} {TITLES[category].toLowerCase()} · {who}
       </p>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <FilterChips category={category} audience={who} filters={filters} setFilters={setFilters} />
-        <div className="flex flex-wrap gap-2">
+      <div className="mt-6 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterChips category={category} audience={who} filters={filters} setFilters={setFilters} />
+          <button
+            type="button"
+            onClick={() => setPriceOpen(true)}
+            className={`min-h-10 rounded-pill border px-4 text-sm ${
+              priceActive ? "border-coral bg-coral text-white" : "border-slate-200 bg-white text-slate-700"
+            }`}
+          >
+            Price
+          </button>
           <label className="flex min-h-10 items-center gap-2 rounded-pill border border-slate-200 bg-white px-3 text-sm">
             <span className="text-slate-500">Sort</span>
-            <select
-              className="bg-transparent outline-none"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-            >
+            <select className="bg-transparent outline-none" value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
               <option value="recommended">Recommended</option>
-              <option value="price-asc">Price · low to high</option>
-              <option value="price-desc">Price · high to low</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
               <option value="rating">Rating</option>
-            </select>
-          </label>
-          <label className="flex min-h-10 items-center gap-2 rounded-pill border border-slate-200 bg-white px-3 text-sm">
-            <span className="text-slate-500">Price</span>
-            <select
-              className="bg-transparent outline-none"
-              value={priceBand}
-              onChange={(e) => setPriceBand(e.target.value as typeof priceBand)}
-            >
-              <option value="any">Any</option>
-              <option value="under8k">Under BDT 8,000</option>
-              <option value="8to20k">BDT 8,000–20,000</option>
-              <option value="over20k">Over BDT 20,000</option>
             </select>
           </label>
         </div>
       </div>
+
       {matched.length === 0 ? (
         <div className="mt-16 flex flex-col items-center text-center">
-          <h2 className="font-display text-2xl text-slate-900">{EMPTY_HEAD[category](location)}</h2>
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sand-100 text-2xl" aria-hidden>
+            ⌕
+          </div>
+          <h2 className="mt-4 font-display text-2xl text-slate-900">{EMPTY_HEAD[category](location)}</h2>
           <p className="mt-2 max-w-md text-sm text-slate-600">Try another place or clear filters.</p>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="mt-6 min-h-11 rounded-pill bg-coral px-5 text-sm font-semibold text-white hover:bg-coral-700"
-          >
+          <button type="button" onClick={clearFilters} className="mt-6 min-h-11 rounded-pill bg-coral px-5 text-sm font-semibold text-white hover:bg-coral-700">
             Clear filters
           </button>
           <Link href="/" className="mt-3 min-h-11 text-sm font-medium text-slate-600 hover:text-slate-900">
@@ -165,6 +178,32 @@ export default function BrowsePage({ category }: { category: Category }) {
           {matched.map((l) => (
             <ListingCard key={l.id} listing={l} audience={who} />
           ))}
+        </div>
+      )}
+
+      {priceOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="dialog" aria-modal="true" onClick={() => setPriceOpen(false)}>
+          <div className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-display text-xl">Price (BDT)</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <label className="text-sm font-medium">
+                Min BDT
+                <input type="number" min={0} className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" value={minInput} onChange={(e) => setMinInput(e.target.value)} placeholder="0" />
+              </label>
+              <label className="text-sm font-medium">
+                Max BDT
+                <input type="number" min={0} className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm" value={maxInput} onChange={(e) => setMaxInput(e.target.value)} placeholder="Any" />
+              </label>
+            </div>
+            <div className="mt-5 flex gap-2">
+              <button type="button" className="min-h-11 flex-1 rounded-pill border border-slate-200 text-sm font-medium" onClick={clearPrice}>
+                Clear
+              </button>
+              <button type="button" className="min-h-11 flex-1 rounded-pill bg-coral text-sm font-semibold text-white" onClick={applyPrice}>
+                Apply
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -12,6 +12,11 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 export const metadata: Metadata = {
   title: "ATLAS — Travel thoughtfully",
   description: "Bangladesh-first stays, day trips, and recreation. Quiet premium booking.",
+  openGraph: {
+    title: "ATLAS — Travel thoughtfully",
+    description: "Bangladesh-first stays, day trips, and recreation. Quiet premium booking.",
+    siteName: "ATLAS",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

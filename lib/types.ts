@@ -30,6 +30,10 @@ export type Listing = {
   soloNotes?: string[];
   houseRules?: string[];
   soldOutDates?: string[];
+  hostName: string;
+  hostPhone: string;
+  hostEmail: string;
+  hostWhatsApp?: string;
 };
 
 export type SearchState = {

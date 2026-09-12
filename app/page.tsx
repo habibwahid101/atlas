@@ -4,47 +4,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchPill } from "@/components/SearchPill";
 import { ListingCard } from "@/components/ListingCard";
-import { featuredListings, categoryHasInventory } from "@/lib/data";
+import { featuredListings, categoryHasInventory, LISTINGS } from "@/lib/data";
 import { useAtlas } from "@/context/AtlasContext";
-import type { Category } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import type { Category, Listing } from "@/lib/types";
 
-const CATS = [
-  { href: "/stays", label: "Stays", cat: "stays" as Category },
-  { href: "/day-trips", label: "Day trips", cat: "day-trips" as Category },
-  { href: "/recreation", label: "Recreation", cat: "recreation" as Category },
-] as const;
-
-const DESTINATIONS = [
-  {
-    name: "Cox's Bazar",
-    blurb: "Beach stays & day trips",
-    image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=80",
-    href: "/stays?location=Cox%27s%20Bazar",
-  },
-  {
-    name: "Sylhet",
-    blurb: "Tea country escapes",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
-    href: "/day-trips?location=Sylhet",
-  },
-  {
-    name: "Saint Martin",
-    blurb: "Island recreation",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-    href: "/recreation?location=Saint%20Martin",
-  },
-  {
-    name: "Chattogram",
-    blurb: "City & coast",
-    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=900&q=80",
-    href: "/stays?location=Chattogram",
-  },
-] as const;
+function DestinationRow({ title, place, href }: { title: string; place: string; href: string }) {
+  const { search } = useAtlas();
+  const cards = LISTINGS.filter((l) => l.place === place).slice(0, 4);
+  if (!cards.length) return null;
+  return (
+    <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <h2 className="font-display text-2xl text-slate-900">{title}</h2>
+        <Link href={href} className="shrink-0 text-sm font-medium text-coral">
+          See all
+        </Link>
+      </div>
+      <div className="no-scrollbar flex gap-4 overflow-x-auto pb-1">
+        {cards.map((l: Listing) => (
+          <div key={l.id} className="w-[260px] shrink-0 sm:w-[280px]">
+            <ListingCard listing={l} audience={search.audience} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
-  const { search, setCategory } = useAtlas();
+  const { search } = useAtlas();
   const featured = featuredListings();
+  const featuredCat: Category = featured[0]?.category || "stays";
 
   return (
     <div>
@@ -65,51 +55,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 py-8 sm:px-6">
-        {CATS.filter((c) => categoryHasInventory(c.cat)).map((c) => (
-          <button
-            key={c.href}
-            type="button"
-            onClick={() => setCategory(c.cat)}
-            className={cn(
-              "shrink-0 border-b-2 pb-2 text-sm font-medium",
-              search.category === c.cat
-                ? "border-coral text-coral"
-                : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900"
-            )}
-          >
-            {c.label}
-          </button>
-        ))}
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
-        <h2 className="font-display text-2xl text-slate-900">Popular destinations</h2>
-        <p className="mt-1 text-sm text-slate-500">Jump into a place — honest inventory, all-in BDT.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {DESTINATIONS.map((d) => (
-            <Link
-              key={d.name}
-              href={d.href}
-              className="group overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft"
-            >
-              <div className="relative aspect-[4/3]">
-                <Image src={d.image} alt={d.name} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" sizes="25vw" />
-              </div>
-              <div className="p-3">
-                <p className="font-medium text-slate-900">{d.name}</p>
-                <p className="text-sm text-slate-500">{d.blurb}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {featured.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="mb-6 flex items-end justify-between">
             <h2 className="font-display text-2xl text-slate-900">Featured this week</h2>
-            <Link href="/stays" className="text-sm font-medium text-coral">
+            <Link href={`/${featuredCat}`} className="text-sm font-medium text-coral">
               View all
             </Link>
           </div>
@@ -122,6 +72,10 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      <DestinationRow title="Popular in Cox’s Bazar" place="Cox's Bazar" href="/stays?location=Cox%27s%20Bazar" />
+      <DestinationRow title="Sylhet" place="Sylhet" href="/stays?location=Sylhet" />
+      <DestinationRow title="Bandarban" place="Bandarban" href="/stays?location=Bandarban" />
     </div>
   );
 }

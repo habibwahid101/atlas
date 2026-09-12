@@ -7,13 +7,14 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const listing = getListing("day-trips", slug);
-  if (!listing) return { title: "Not found · ATLAS" };
+  if (!listing) return { title: "Page not found | ATLAS" };
+  const description = listing.description.slice(0, 155);
   return {
-    title: `${listing.title} · ATLAS`,
-    description: listing.description.slice(0, 155),
+    title: `${listing.title} · ${listing.place} | ATLAS`,
+    description,
     openGraph: {
-      title: listing.title,
-      description: listing.description.slice(0, 155),
+      title: `${listing.title} · ${listing.place} | ATLAS`,
+      description,
       images: listing.images[0] ? [listing.images[0]] : [],
     },
   };

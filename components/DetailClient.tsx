@@ -3,19 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
+import { guestSummary } from "@/lib/copy";
 import { priceForListing } from "@/lib/pricing";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
-import type { Category } from "@/lib/types";
+import type { Audience, Category } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default function DetailClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, setSearch, addCompare } = useAtlas();
-  const [editDates, setEditDates] = useState(false);
+  const { search, setSearch, setAudience, addCompare } = useAtlas();
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -32,8 +34,8 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
   if (!listing) return notFound();
 
-  const guests = search.adults + search.children;
-  const price = priceForListing(listing, search.from, search.to, guests);
+  const guests = search.adults + (search.audience === "Corporate" ? 0 : search.children);
+  const price = priceForListing(listing, search.from, search.to, search.adults + search.children);
   const cancelUntil = listing.freeCancellation
     ? addDays(search.from, -listing.cancelUntilDays)
     : null;
@@ -56,6 +58,13 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
   const extra = Math.max(0, listing.images.length - 5);
   const thumbs = listing.images.slice(0, 5);
+  const lineLabel = category === "stays" ? "Stay" : category === "day-trips" ? "Day trip" : "Activity";
+  const stickySub =
+    category === "stays"
+      ? `total · ${nightsBetween(search.from, search.to)} nights · all-in`
+      : category === "day-trips"
+        ? "day · all-in"
+        : "session · all-in";
 
   function onTouchStart(e: React.TouchEvent) {
     touchX.current = e.touches[0]?.clientX ?? null;
@@ -69,6 +78,8 @@ export default function DetailClient({ category, slug }: { category: Category; s
     if (dx < 0) setActive((i) => (i + 1) % listing!.images.length);
     else setActive((i) => (i - 1 + listing!.images.length) % listing!.images.length);
   }
+
+  const wa = listing.hostWhatsApp || listing.hostPhone.replace(/\D/g, "");
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -88,7 +99,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
             sizes="100vw"
           />
         </button>
-        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
           {thumbs.map((src, i) => {
             const isLastOverlay = i === 4 && extra > 0;
             return (
@@ -102,24 +113,12 @@ export default function DetailClient({ category, slug }: { category: Category; s
                   if (isLastOverlay) {
                     setActive(i);
                     setLightbox(true);
-                  } else {
-                    setActive(i);
-                  }
+                  } else setActive(i);
                 }}
-                aria-label={
-                  isLastOverlay
-                    ? `Open gallery, ${extra} more photos`
-                    : `Show ${listing.title} — photo ${i + 1}`
-                }
+                aria-label={isLastOverlay ? `Open gallery, ${extra} more photos` : `Show ${listing.title} — photo ${i + 1}`}
                 aria-pressed={active === i}
               >
-                <Image
-                  src={src}
-                  alt={`${listing.title} — photo ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="112px"
-                />
+                <Image src={src} alt={`${listing.title} — photo ${i + 1}`} fill className="object-cover" sizes="112px" />
                 {isLastOverlay && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-medium text-white">
                     +{extra}
@@ -147,6 +146,27 @@ export default function DetailClient({ category, slug }: { category: Category; s
               </span>
             ))}
           </div>
+
+          <section className="mt-8 rounded-card border border-slate-200 bg-white p-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Operator</h2>
+            <p className="mt-2 font-medium text-slate-900">{listing.hostName}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a href={`tel:${listing.hostPhone}`} className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium">
+                Call
+              </a>
+              <a
+                href={`https://wa.me/${wa}`}
+                target="_blank"
+                rel="noreferrer"
+                className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium"
+              >
+                WhatsApp
+              </a>
+              <a href={`mailto:${listing.hostEmail}`} className="min-h-11 rounded-pill border border-slate-200 px-4 py-2 text-sm font-medium">
+                Email
+              </a>
+            </div>
+          </section>
 
           {notes && notes.length > 0 && (
             <div className="mt-6 rounded-card border border-slate-200 bg-white p-4">
@@ -182,47 +202,20 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </div>
 
         <aside className="h-fit rounded-card border border-slate-200 bg-white p-5 shadow-soft lg:sticky lg:top-24">
-          <div className="flex items-center justify-between gap-2">
+          <button type="button" className="w-full text-left" onClick={() => setSheetOpen(true)}>
             <p className="text-sm text-slate-500">Dates</p>
-            <button type="button" className="text-xs font-medium text-coral" onClick={() => setEditDates((v) => !v)}>
-              {editDates ? "Done" : "Change"}
-            </button>
-          </div>
-          {editDates ? (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <label className="text-xs text-slate-500">
-                From
-                <input
-                  type="date"
-                  className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-2 text-sm"
-                  value={search.from}
-                  onChange={(e) => setSearch((s) => ({ ...s, from: e.target.value }))}
-                />
-              </label>
-              <label className="text-xs text-slate-500">
-                To
-                <input
-                  type="date"
-                  className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-2 text-sm"
-                  value={search.to}
-                  onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
-                />
-              </label>
-            </div>
-          ) : (
-            <p className="font-medium">{formatShortRange(search.from, search.to)}</p>
-          )}
-          <p className="mt-3 text-sm text-slate-500">Guests</p>
-          <p className="font-medium">
-            {search.audience} · {search.adults} adult{search.adults > 1 ? "s" : ""}
-            {search.children ? `, ${search.children} child` : ""}
-          </p>
+            <p className="font-medium text-coral underline-offset-2 hover:underline">{formatShortRange(search.from, search.to)}</p>
+            <p className="mt-3 text-sm text-slate-500">Guests</p>
+            <p className="font-medium text-coral underline-offset-2 hover:underline">
+              {search.audience} · {guestSummary(search.adults, search.audience === "Corporate" ? 0 : search.children)}
+            </p>
+          </button>
           <p className="mt-4 text-sm text-slate-500">
             Total for {category === "stays" ? `${nightsBetween(search.from, search.to)} nights` : "your dates"} (all-in)
           </p>
           <p className="font-display text-3xl text-slate-900">{formatMoney(price.total)}</p>
           <ul className="mt-2 space-y-1 text-xs text-slate-500">
-            <li className="flex justify-between"><span>Room / ticket</span><span>{formatMoney(price.base)}</span></li>
+            <li className="flex justify-between"><span>{lineLabel}</span><span>{formatMoney(price.base)}</span></li>
             <li className="flex justify-between"><span>Service</span><span>{formatMoney(price.service)}</span></li>
             <li className="flex justify-between"><span>Tax</span><span>{formatMoney(price.tax)}</span></li>
           </ul>
@@ -252,18 +245,23 @@ export default function DetailClient({ category, slug }: { category: Category; s
       <div className="h-28 lg:hidden" />
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div className="mb-2 flex gap-3 text-xs text-slate-600">
+          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={() => setSheetOpen(true)}>
+            <span className="block text-[10px] uppercase text-slate-400">Dates</span>
+            {formatShortRange(search.from, search.to)}
+          </button>
+          <button type="button" className="min-h-11 flex-1 rounded-xl border border-slate-200 px-2 text-left" onClick={() => setSheetOpen(true)}>
+            <span className="block text-[10px] uppercase text-slate-400">Guests</span>
+            {guestSummary(search.adults, search.audience === "Corporate" ? 0 : search.children)}
+          </button>
+        </div>
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="font-semibold text-slate-900">{formatMoney(price.total)}</p>
-            <p className="text-xs text-slate-500">
-              total · {nightsBetween(search.from, search.to)} nights · all-in
-            </p>
+            <p className="text-xs text-slate-500">{stickySub}</p>
           </div>
           {!blockReason ? (
-            <Link
-              href={`/book/${category}/${slug}`}
-              className="min-h-11 shrink-0 rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white"
-            >
+            <Link href={`/book/${category}/${slug}`} className="min-h-11 shrink-0 rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
               {bookLabel}
             </Link>
           ) : (
@@ -271,6 +269,21 @@ export default function DetailClient({ category, slug }: { category: Category; s
           )}
         </div>
       </div>
+
+      <DatesGuestsSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        from={search.from}
+        to={search.to}
+        audience={search.audience}
+        adults={search.adults}
+        childrenCount={search.children}
+        onFrom={(v) => setSearch((s) => ({ ...s, from: v }))}
+        onTo={(v) => setSearch((s) => ({ ...s, to: v }))}
+        onAudience={(a: Audience) => setAudience(a)}
+        onAdults={(n) => setSearch((s) => ({ ...s, adults: n }))}
+        onChildren={(n) => setSearch((s) => ({ ...s, children: n }))}
+      />
 
       {lightbox && (
         <div
@@ -285,53 +298,24 @@ export default function DetailClient({ category, slug }: { category: Category; s
             <p className="text-sm">
               {active + 1} / {listing.images.length}
             </p>
-            <button
-              type="button"
-              className="min-h-11 min-w-11 rounded-full text-lg"
-              onClick={() => setLightbox(false)}
-              aria-label="Close gallery"
-            >
+            <button type="button" className="min-h-11 min-w-11 rounded-full text-lg" onClick={() => setLightbox(false)} aria-label="Close gallery">
               ✕
             </button>
           </div>
           <div className="relative flex flex-1 items-center justify-center px-4">
-            <button
-              type="button"
-              className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white"
-              onClick={() => setActive((i) => (i - 1 + listing.images.length) % listing.images.length)}
-              aria-label="Previous photo"
-            >
+            <button type="button" className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white" onClick={() => setActive((i) => (i - 1 + listing.images.length) % listing.images.length)} aria-label="Previous photo">
               ‹
             </button>
             <div className="relative h-full max-h-[70vh] w-full max-w-4xl">
-              <Image
-                src={listing.images[active]}
-                alt={`${listing.title} — photo ${active + 1}`}
-                fill
-                className="object-contain"
-                sizes="100vw"
-              />
+              <Image src={listing.images[active]} alt={`${listing.title} — photo ${active + 1}`} fill className="object-contain" sizes="100vw" />
             </div>
-            <button
-              type="button"
-              className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white"
-              onClick={() => setActive((i) => (i + 1) % listing.images.length)}
-              aria-label="Next photo"
-            >
+            <button type="button" className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white" onClick={() => setActive((i) => (i + 1) % listing.images.length)} aria-label="Next photo">
               ›
             </button>
           </div>
           <div className="no-scrollbar flex justify-center gap-2 overflow-x-auto px-4 py-4">
             {listing.images.map((src, i) => (
-              <button
-                key={`lb-${src}-${i}`}
-                type="button"
-                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-md ${
-                  active === i ? "ring-2 ring-white" : "opacity-70"
-                }`}
-                onClick={() => setActive(i)}
-                aria-label={`${listing.title} — photo ${i + 1}`}
-              >
+              <button key={`lb-${src}-${i}`} type="button" className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-md ${active === i ? "ring-2 ring-white" : "opacity-70"}`} onClick={() => setActive(i)}>
                 <Image src={src} alt={`${listing.title} — photo ${i + 1}`} fill className="object-cover" sizes="80px" />
               </button>
             ))}

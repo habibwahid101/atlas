@@ -12,9 +12,11 @@ export default function ConfirmClient({ id }: { id: string }) {
   if (!booking) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-slate-600">Booking not found in this browser. Complete checkout again or open My trips.</p>
-        <Link href="/trips" className="mt-4 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
-          View in My trips
+        <p className="font-display text-2xl tracking-wide">ATLAS</p>
+        <h1 className="mt-4 font-display text-2xl text-slate-900">Booking not found</h1>
+        <p className="mt-2 text-slate-600">That booking isn’t in this browser.</p>
+        <Link href="/stays" className="mt-6 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
+          Back to stays
         </Link>
       </div>
     );

@@ -22,6 +22,15 @@ export function CompareTray() {
 
   if (!compare.length) return null;
 
+  const majority = compare.reduce<Record<string, number>>((acc, l) => {
+    acc[l.category] = (acc[l.category] || 0) + 1;
+    return acc;
+  }, {});
+  const topCat = Object.entries(majority).sort((a, b) => b[1] - a[1])[0]?.[0] || "stays";
+  const compareTitle =
+    topCat === "day-trips" ? "Compare day trips" : topCat === "recreation" ? "Compare recreation" : "Compare stays";
+
+
   return (
     <>
       {!compareOpen && !onBook && (
@@ -41,7 +50,7 @@ export function CompareTray() {
       {compareOpen && (
         <div className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-auto rounded-t-card border border-slate-200 bg-white p-4 shadow-2xl sm:p-6">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
-            <h2 className="text-lg font-semibold">Compare stays · {compare.length} of 3</h2>
+            <h2 className="text-lg font-semibold">{compareTitle} · {compare.length} of 3</h2>
             <button
               type="button"
               className="text-2xl leading-none text-slate-500"

@@ -4,7 +4,7 @@ import BrowsePage from "@/components/BrowsePage";
 import { BrowseSkeleton } from "@/components/Skeleton";
 
 export const metadata: Metadata = {
-  title: "Recreation · ATLAS",
+  title: "Recreation in Bangladesh | ATLAS",
   description: "Browse Bangladesh recreation with all-in BDT pricing.",
 };
 

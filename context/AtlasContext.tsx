@@ -18,6 +18,8 @@ type AtlasContextValue = {
   cancelBooking: (id: string) => void;
   compareOpen: boolean;
   setCompareOpen: (v: boolean) => void;
+  compareToast: string | null;
+  clearCompareToast: () => void;
 };
 
 const AtlasContext = createContext<AtlasContextValue | null>(null);
@@ -44,6 +46,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [compare, setCompare] = useState<Listing[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [compareToast, setCompareToast] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -79,6 +82,12 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("atlas-bookings", JSON.stringify(bookings));
   }, [bookings, hydrated]);
 
+  useEffect(() => {
+    if (!compareToast) return;
+    const t = setTimeout(() => setCompareToast(null), 2800);
+    return () => clearTimeout(t);
+  }, [compareToast]);
+
   const value = useMemo<AtlasContextValue>(
     () => ({
       search,
@@ -89,7 +98,10 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       addCompare: (l) =>
         setCompare((prev) => {
           if (prev.find((x) => x.id === l.id)) return prev;
-          if (prev.length >= 3) return prev;
+          if (prev.length >= 3) {
+            setCompareToast("Compare up to 3 — remove one first.");
+            return prev;
+          }
           setCompareOpen(true);
           return [...prev, l];
         }),
@@ -101,11 +113,22 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
         setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))),
       compareOpen,
       setCompareOpen,
+      compareToast,
+      clearCompareToast: () => setCompareToast(null),
     }),
-    [search, compare, bookings, compareOpen]
+    [search, compare, bookings, compareOpen, compareToast]
   );
 
-  return <AtlasContext.Provider value={value}>{children}</AtlasContext.Provider>;
+  return (
+    <AtlasContext.Provider value={value}>
+      {children}
+      {compareToast && (
+        <div className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-pill bg-slate-900 px-4 py-2 text-sm text-white shadow-soft">
+          {compareToast}
+        </div>
+      )}
+    </AtlasContext.Provider>
+  );
 }
 
 export function useAtlas() {
