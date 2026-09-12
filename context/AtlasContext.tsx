@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Audience, Booking, Category, Listing, SearchState } from "@/lib/types";
 import { defaultDates } from "@/lib/dates";
 
@@ -25,6 +26,7 @@ type AtlasContextValue = {
 const AtlasContext = createContext<AtlasContextValue | null>(null);
 
 const defaults = defaultDates();
+const CAP_TOAST = "Compare up to 3 — remove one first.";
 
 function audienceDefaults(a: Audience): Pick<SearchState, "adults" | "children"> {
   if (a === "Family") return { adults: 2, children: 1 };
@@ -47,9 +49,15 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareToast, setCompareToast] = useState<string | null>(null);
+  const [toastKey, setToastKey] = useState(0);
   const [hydrated, setHydrated] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const compareRef = useRef(compare);
   compareRef.current = compare;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     try {
@@ -86,20 +94,28 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!compareToast) return;
-    const t = setTimeout(() => setCompareToast(null), 3200);
+    const t = setTimeout(() => setCompareToast(null), 4000);
     return () => clearTimeout(t);
-  }, [compareToast]);
+  }, [compareToast, toastKey]);
 
-  const addCompare = useCallback((l: Listing) => {
-    const prev = compareRef.current;
-    if (prev.find((x) => x.id === l.id)) return;
-    if (prev.length >= 3) {
-      setCompareToast("Compare up to 3 — remove one first.");
-      return;
-    }
-    setCompare([...prev, l]);
-    setCompareOpen(true);
+  const showCapToast = useCallback(() => {
+    setCompareToast(CAP_TOAST);
+    setToastKey((k) => k + 1);
   }, []);
+
+  const addCompare = useCallback(
+    (l: Listing) => {
+      const prev = compareRef.current;
+      if (prev.find((x) => x.id === l.id)) return;
+      if (prev.length >= 3) {
+        showCapToast();
+        return;
+      }
+      setCompare([...prev, l]);
+      setCompareOpen(true);
+    },
+    [showCapToast]
+  );
 
   const value = useMemo<AtlasContextValue>(
     () => ({
@@ -123,20 +139,28 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     [search, compare, bookings, compareOpen, compareToast, addCompare]
   );
 
+  const toast =
+    mounted && compareToast
+      ? createPortal(
+          <div
+            key={toastKey}
+            role="status"
+            aria-live="assertive"
+            data-testid="compare-cap-toast"
+            className="fixed inset-x-0 top-4 z-[200] flex justify-center px-4 pointer-events-none"
+          >
+            <div className="max-w-md rounded-pill bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg">
+              {compareToast}
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
     <AtlasContext.Provider value={value}>
       {children}
-      {compareToast ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="pointer-events-none fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[100] flex justify-center px-4 lg:bottom-8"
-        >
-          <div className="rounded-pill bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
-            {compareToast}
-          </div>
-        </div>
-      ) : null}
+      {toast}
     </AtlasContext.Provider>
   );
 }
