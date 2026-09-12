@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { GuestSteppers } from "@/components/GuestSteppers";
 import { clampAwaySoldOut, dateFieldLabels, isSoldOutDate, validateDateRange } from "@/lib/availability";
 import type { Audience, Category } from "@/lib/types";
@@ -44,27 +45,31 @@ export function DatesGuestsSheet({
     [from, to, category, minNights, soldOutDates]
   );
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef });
 
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Edit dates and guests"
+      role="presentation"
       onClick={onClose}
     >
-      <div className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card" onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-display text-xl text-slate-900">Dates & guests</h2>
+      <div
+        ref={panelRef}
+        className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dates-guests-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h2 id="dates-guests-title" className="font-display text-xl text-slate-900">Dates & guests</h2>
+          <button ref={closeRef} type="button" className="min-h-11 min-w-11 text-2xl leading-none text-slate-500" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <label className="text-sm font-medium">
             {labels.from}

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
 import { LocationMap } from "@/components/LocationMap";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -23,6 +24,10 @@ export default function DetailClient({ category, slug }: { category: Category; s
   const { search, setSearch, setAudience, addCompare, compare, setCompareOpen } = useAtlas();
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const lightboxCloseRef = useRef<HTMLButtonElement>(null);
+  const { panelRef: lightboxRef } = useDialogA11y(lightbox, () => setLightbox(false), {
+    initialFocusRef: lightboxCloseRef,
+  });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const touchX = useRef<number | null>(null);
@@ -30,7 +35,6 @@ export default function DetailClient({ category, slug }: { category: Category; s
   useEffect(() => {
     if (!lightbox) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(false);
       if (!listing) return;
       if (e.key === "ArrowRight") setActive((i) => (i + 1) % listing.images.length);
       if (e.key === "ArrowLeft") setActive((i) => (i - 1 + listing.images.length) % listing.images.length);
@@ -382,18 +386,31 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
       {lightbox && (
         <div
+          ref={lightboxRef}
           className="fixed inset-0 z-50 flex flex-col bg-black/90"
           role="dialog"
           aria-modal="true"
-          aria-label="Photo gallery"
+          aria-labelledby="lightbox-title"
+          aria-describedby="lightbox-status"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
           <div className="flex items-center justify-between px-4 py-3 text-white">
-            <p className="text-sm">
-              {active + 1} / {listing.images.length}
-            </p>
-            <button type="button" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-white" onClick={() => setLightbox(false)} aria-label="Close gallery">
+            <div>
+              <h2 id="lightbox-title" className="sr-only">
+                Photo gallery
+              </h2>
+              <p id="lightbox-status" className="text-sm" aria-live="polite">
+                Photo {active + 1} of {listing.images.length}
+              </p>
+            </div>
+            <button
+              ref={lightboxCloseRef}
+              type="button"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-white"
+              onClick={() => setLightbox(false)}
+              aria-label="Close gallery"
+            >
               <IconClose className="h-6 w-6" />
             </button>
           </div>

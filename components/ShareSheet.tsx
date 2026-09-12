@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 
 export function ShareSheet({
   open,
@@ -15,14 +16,8 @@ export function ShareSheet({
 }) {
   const [toast, setToast] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const { panelRef } = useDialogA11y(open, onClose, { initialFocusRef: closeRef });
 
   useEffect(() => {
     if (!toast) return;
@@ -56,18 +51,25 @@ export function ShareSheet({
     <>
       <div
         className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="share-sheet-title"
+        role="presentation"
         onClick={onClose}
       >
         <div
+          ref={panelRef}
           className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-sheet-title"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 id="share-sheet-title" className="font-display text-xl text-slate-900">
-            Share
-          </h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 id="share-sheet-title" className="font-display text-xl text-slate-900">
+              Share
+            </h2>
+            <button ref={closeRef} type="button" className="min-h-11 min-w-11 text-2xl leading-none text-slate-500" onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          </div>
           <p className="mt-1 truncate text-sm text-slate-500">{title}</p>
           <div className="mt-4 flex flex-col gap-2">
             <button

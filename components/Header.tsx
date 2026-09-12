@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 import { categoryHasInventory } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { IconClose, IconMenu } from "@/components/Icons";
@@ -19,22 +20,23 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const items = NAV.filter((n) => categoryHasInventory(n.cat));
+  const authCloseRef = useRef<HTMLButtonElement>(null);
+  const { panelRef: authPanelRef } = useDialogA11y(signInOpen, () => setSignInOpen(false), {
+    initialFocusRef: authCloseRef,
+  });
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!signInOpen && !menuOpen) return;
+    if (!menuOpen || signInOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSignInOpen(false);
-        setMenuOpen(false);
-      }
+      if (e.key === "Escape") setMenuOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [signInOpen, menuOpen]);
+  }, [menuOpen, signInOpen]);
 
   function goSearch() {
     setMenuOpen(false);
@@ -156,18 +158,31 @@ export function Header() {
       {signInOpen && (
         <div
           className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="accounts-soon-title"
+          role="presentation"
           onClick={() => setSignInOpen(false)}
         >
           <div
+            ref={authPanelRef}
             className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="accounts-soon-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="accounts-soon-title" className="font-display text-xl text-slate-900">
-              Accounts coming soon
-            </h2>
+            <div className="flex items-start justify-between gap-3">
+              <h2 id="accounts-soon-title" className="font-display text-xl text-slate-900">
+                Accounts coming soon
+              </h2>
+              <button
+                ref={authCloseRef}
+                type="button"
+                className="min-h-11 min-w-11 text-2xl leading-none text-slate-500"
+                onClick={() => setSignInOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
             <p className="mt-2 text-sm text-slate-600">
               Book as a guest for now — trips save on this device.
             </p>

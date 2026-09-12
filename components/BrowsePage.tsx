@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useDialogA11y } from "@/hooks/useDialogA11y";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ListingCard } from "@/components/ListingCard";
@@ -134,6 +135,10 @@ export default function BrowsePage({ category }: { category: Category }) {
   }
 
   const priceActive = minPrice != null || maxPrice != null;
+  const priceCloseRef = useRef<HTMLButtonElement>(null);
+  const { panelRef: pricePanelRef } = useDialogA11y(priceOpen, () => setPriceOpen(false), {
+    initialFocusRef: priceCloseRef,
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -190,9 +195,21 @@ export default function BrowsePage({ category }: { category: Category }) {
       )}
 
       {priceOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="dialog" aria-modal="true" onClick={() => setPriceOpen(false)}>
-          <div className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-display text-xl">Price (BDT)</h2>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="presentation" onClick={() => setPriceOpen(false)}>
+          <div
+            ref={pricePanelRef}
+            className="w-full max-w-md rounded-t-card bg-white p-5 shadow-soft sm:rounded-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="price-sheet-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h2 id="price-sheet-title" className="font-display text-xl">Price (BDT)</h2>
+              <button ref={priceCloseRef} type="button" className="min-h-11 min-w-11 text-2xl leading-none text-slate-500" onClick={() => setPriceOpen(false)} aria-label="Close">
+                ×
+              </button>
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <label className="text-sm font-medium">
                 Min BDT
