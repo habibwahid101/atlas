@@ -66,7 +66,7 @@ export function Header() {
       </div>
       {signInNote && (
         <div className="border-t border-slate-100 bg-white px-4 py-3 text-sm text-slate-600 sm:px-6">
-          Guest checkout is available now. Account sign-in lands in a later release.
+          Guest checkout works now. Sign-in accounts ship in a later release.
         </div>
       )}
       {menuOpen && (

@@ -11,11 +11,11 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "ATLAS — Travel thoughtfully",
-  description: "Bangladesh-first stays, day trips, and recreation. Quiet premium booking.",
+  title: "ATLAS — Book Bangladesh with the full price up front",
+  description: "Stays, day trips, and recreation across Bangladesh. All-in BDT pricing — no surprise fees.",
   openGraph: {
-    title: "ATLAS — Travel thoughtfully",
-    description: "Bangladesh-first stays, day trips, and recreation. Quiet premium booking.",
+    title: "ATLAS — Book Bangladesh with the full price up front",
+    description: "Stays, day trips, and recreation across Bangladesh. All-in BDT pricing — no surprise fees.",
     siteName: "ATLAS",
   },
 };

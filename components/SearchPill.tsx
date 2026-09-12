@@ -146,7 +146,7 @@ export function SearchPill({
         type="submit"
         className="inline-flex min-h-11 items-center justify-center rounded-pill bg-coral px-6 text-sm font-semibold text-white hover:bg-coral-700"
       >
-        Search
+        Search ATLAS
       </button>
     </form>
   );

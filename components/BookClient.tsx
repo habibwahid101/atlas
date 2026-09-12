@@ -210,8 +210,8 @@ export default function BookClient({ category, slug }: { category: Category; slu
             {step === 3 && (
               <div className="mt-4">
                 <p className="mb-3 text-sm text-slate-500">Choose your preferred payment method</p>
-                <p className="mb-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-slate-600">
-                  Demo payment — you won’t be charged.
+                <p className="mb-3 rounded-xl bg-sand-50 px-3 py-2 text-xs font-medium text-slate-700">
+                  Demo only — no money moves. This is not a real charge.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {METHODS.map((m) => (
@@ -229,13 +229,16 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   <span>Total due</span>
                   <strong>{formatMoney(price.total)}</strong>
                 </div>
+                <p className="mt-4 rounded-xl bg-sand-50 px-3 py-2 text-xs font-medium text-slate-700">
+                  Demo only — no money moves. This is not a real charge.
+                </p>
                 <button
                   type="button"
                   disabled={!method || !validateSilent()}
                   onClick={pay}
-                  className="mt-4 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mt-2 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Pay BDT {price.total.toLocaleString("en-BD")}
+                  Complete demo payment · BDT {price.total.toLocaleString("en-BD")}
                 </button>
                 {cancelUntil && (
                   <p className="mt-2 text-center text-xs text-emerald-700">

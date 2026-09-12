@@ -14,8 +14,8 @@ export default function ConfirmClient({ id }: { id: string }) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
         <p className="font-display text-2xl tracking-wide">ATLAS</p>
-        <h1 className="mt-4 font-display text-2xl text-slate-900">Booking not found</h1>
-        <p className="mt-2 text-slate-600">That booking isn’t in this browser.</p>
+        <h1 className="mt-4 font-display text-2xl text-slate-900">We couldn’t find that booking</h1>
+        <p className="mt-2 text-slate-600">It may be from another browser, or the demo session was cleared. Start from stays whenever you’re ready.</p>
         <Link href="/stays" className="mt-6 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
           Back to stays
         </Link>
@@ -28,8 +28,8 @@ export default function ConfirmClient({ id }: { id: string }) {
       <div className="flex items-start gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">✓</div>
         <div>
-          <h1 className="font-display text-3xl text-slate-900">You’re booked.</h1>
-          <p className="mt-1 text-slate-600">Save this page or download your voucher. (Demo booking — no charge.)</p>
+          <h1 className="font-display text-3xl text-slate-900">You’re confirmed.</h1>
+          <p className="mt-1 text-slate-600">Demo booking — nothing was charged. Save this page or download your voucher.</p>
         </div>
       </div>
 

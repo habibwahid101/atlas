@@ -59,9 +59,15 @@ export default function TripsPage() {
       </div>
       {list.length === 0 ? (
         <div className="mt-12 text-center text-slate-600">
-          <p>{tab === "upcoming" ? "No upcoming trips. Explore stays." : "No " + tab + " trips."}</p>
+          <p>
+            {tab === "upcoming"
+              ? "No upcoming trips yet. Browse stays, day trips, and recreation."
+              : tab === "past"
+                ? "No past trips here yet."
+                : "No cancelled trips."}
+          </p>
           <Link href="/stays" className="mt-4 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
-            Explore stays
+            Browse ATLAS
           </Link>
         </div>
       ) : (
@@ -82,7 +88,7 @@ export default function TripsPage() {
                     {b.audience} · {guestSummary(b.adults, b.children)}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    Booking {b.ref} · Paid {formatMoney(b.total)}
+                    Booking {b.ref} · Demo · BDT {b.total.toLocaleString("en-BD")}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link href={`/bookings/${b.id}/voucher`} className="min-h-11 rounded-pill bg-coral px-4 py-2 text-sm font-semibold text-white">

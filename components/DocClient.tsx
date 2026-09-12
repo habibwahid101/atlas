@@ -12,8 +12,8 @@ export default function DocClient({ id, kind }: { id: string; kind: "voucher" | 
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <p className="font-display text-2xl tracking-wide">ATLAS</p>
-        <h1 className="mt-4 font-display text-2xl">Document not found</h1>
-        <p className="mt-2 text-sm text-slate-600">That booking isn’t in this browser.</p>
+        <h1 className="mt-4 font-display text-2xl">We couldn’t open that document</h1>
+        <p className="mt-2 text-sm text-slate-600">The booking may be from another browser, or this demo session was cleared.</p>
         <Link href="/stays" className="mt-6 inline-flex min-h-11 items-center rounded-pill bg-coral px-5 text-sm font-semibold text-white">
           Back to stays
         </Link>
@@ -60,6 +60,7 @@ export default function DocClient({ id, kind }: { id: string; kind: "voucher" | 
             <p>Email: {listing.hostEmail}</p>
           </div>
         )}
+        <p className="pt-4 text-xs text-slate-500">Demo document — not a real ticket or tax invoice.</p>
       </div>
     </div>
   );

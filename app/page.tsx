@@ -49,7 +49,15 @@ export default function HomePage() {
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-          <div className="absolute inset-x-0 bottom-4 flex justify-center px-3 sm:bottom-8">
+          <div className="absolute inset-x-0 bottom-4 flex flex-col items-center gap-3 px-3 sm:bottom-8">
+            <div className="max-w-2xl text-center text-white drop-shadow">
+              <h1 className="font-display text-2xl leading-tight sm:text-4xl">
+                Book Bangladesh with the full price up front
+              </h1>
+              <p className="mt-2 text-sm text-white/90 sm:text-base">
+                Stays, day trips, and recreation — all-in BDT, no surprise fees.
+              </p>
+            </div>
             <SearchPill />
           </div>
         </div>
@@ -58,7 +66,7 @@ export default function HomePage() {
       {featured.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="mb-6 flex items-end justify-between">
-            <h2 className="font-display text-2xl text-slate-900">Featured this week</h2>
+            <h2 className="font-display text-2xl text-slate-900">Worth booking this week</h2>
             <Link href={`/${featuredCat}`} className="text-sm font-medium text-coral">
               View all
             </Link>
