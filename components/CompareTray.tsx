@@ -84,8 +84,8 @@ export function CompareTray() {
           className={cn(
             "fixed left-1/2 z-[35] -translate-x-1/2 rounded-pill border border-slate-200 bg-white/95 px-3.5 py-2 text-xs font-medium text-slate-800 shadow-soft backdrop-blur",
             onDetail
-              ? "bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4"
-              : "bottom-4"
+              ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6"
+              : "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-8"
           )}
         >
           Compare ({compare.length}/3)
