@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAtlas } from "@/context/AtlasContext";
 import { formatMoney, formatShortRange } from "@/lib/dates";
+import { guestSummary } from "@/lib/copy";
 
 export default function ConfirmClient({ id }: { id: string }) {
   const { bookings } = useAtlas();
@@ -44,8 +45,7 @@ export default function ConfirmClient({ id }: { id: string }) {
               <div>
                 <p>{formatShortRange(booking.from, booking.to)}</p>
                 <p className="text-slate-500">
-                  {booking.audience} · {booking.adults} adult{booking.adults > 1 ? "s" : ""}
-                  {booking.children ? `, ${booking.children} child` : ""}
+                  {booking.audience} · {guestSummary(booking.adults, booking.children)}
                 </p>
               </div>
               <div className="text-right">

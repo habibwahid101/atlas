@@ -88,7 +88,7 @@ export function CompareTray() {
                       <span>{l.freeCancellation ? "Yes" : "Non-refundable"}</span>
                     </li>
                     <li className="flex justify-between border-b border-slate-100 pb-2">
-                      <span>Audience fit</span>
+                      <span>Who fit</span>
                       <span>
                         {l.familyRooms
                           ? "Family room"

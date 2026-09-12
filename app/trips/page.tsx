@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
 import { formatMoney, formatShortRange } from "@/lib/dates";
+import { guestSummary } from "@/lib/copy";
 
 type Tab = "upcoming" | "past" | "cancelled";
 
@@ -78,8 +79,7 @@ export default function TripsPage() {
                   <h2 className="mt-1 text-lg font-semibold">{b.title}</h2>
                   <p className="text-sm text-slate-500">{b.location}</p>
                   <p className="mt-2 text-sm text-slate-600">
-                    {b.audience} · {b.adults} adult{b.adults > 1 ? "s" : ""}
-                    {b.children ? ` ${b.children} child` : ""}
+                    {b.audience} · {guestSummary(b.adults, b.children)}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
                     Booking {b.ref} · Paid {formatMoney(b.total)}
