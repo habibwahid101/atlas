@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ListingCard } from "@/components/ListingCard";
 import { FilterChips, type Filters } from "@/components/FilterChips";
 import { byCategory } from "@/lib/data";
+import { priceForListing } from "@/lib/pricing";
 import { useAtlas } from "@/context/AtlasContext";
 import type { Audience, Category } from "@/lib/types";
 
@@ -29,6 +30,8 @@ const emptyFilters: Filters = {
   durationShort: false,
 };
 
+type SortKey = "recommended" | "price-asc" | "price-desc" | "rating";
+
 export default function BrowsePage({ category }: { category: Category }) {
   const params = useSearchParams();
   const router = useRouter();
@@ -39,6 +42,8 @@ export default function BrowsePage({ category }: { category: Category }) {
   const locationQueried = locationParam !== null && location.length > 0;
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [sort, setSort] = useState<SortKey>("recommended");
+  const [priceBand, setPriceBand] = useState<"any" | "under8k" | "8to20k" | "over20k">("any");
 
   useEffect(() => {
     setCategory(category);
@@ -74,11 +79,29 @@ export default function BrowsePage({ category }: { category: Category }) {
     }
     if (filters.beachfront) list = list.filter((l) => l.beachfront);
     if (filters.durationShort) list = list.filter((l) => (l.durationHours ?? 99) <= 4);
-    return list;
-  }, [category, location, locationQueried, filters, who]);
+
+    const guests = search.adults + search.children;
+    const withPrice = list.map((l) => ({
+      l,
+      total: priceForListing(l, search.from, search.to, guests).total,
+    }));
+
+    let priced = withPrice;
+    if (priceBand === "under8k") priced = priced.filter((x) => x.total < 8000);
+    if (priceBand === "8to20k") priced = priced.filter((x) => x.total >= 8000 && x.total <= 20000);
+    if (priceBand === "over20k") priced = priced.filter((x) => x.total > 20000);
+
+    if (sort === "price-asc") priced = [...priced].sort((a, b) => a.total - b.total);
+    else if (sort === "price-desc") priced = [...priced].sort((a, b) => b.total - a.total);
+    else if (sort === "rating") priced = [...priced].sort((a, b) => b.l.rating - a.l.rating);
+
+    return priced.map((x) => x.l);
+  }, [category, location, locationQueried, filters, who, sort, priceBand, search]);
 
   function clearFilters() {
     setFilters(emptyFilters);
+    setPriceBand("any");
+    setSort("recommended");
     setSearch((s) => ({ ...s, location: "" }));
     router.push(`/${category}`);
   }
@@ -91,8 +114,36 @@ export default function BrowsePage({ category }: { category: Category }) {
       <p className="mt-1 text-sm text-slate-500">
         {matched.length} {TITLES[category].toLowerCase()} · {who}
       </p>
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <FilterChips category={category} audience={who} filters={filters} setFilters={setFilters} />
+        <div className="flex flex-wrap gap-2">
+          <label className="flex min-h-10 items-center gap-2 rounded-pill border border-slate-200 bg-white px-3 text-sm">
+            <span className="text-slate-500">Sort</span>
+            <select
+              className="bg-transparent outline-none"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+            >
+              <option value="recommended">Recommended</option>
+              <option value="price-asc">Price · low to high</option>
+              <option value="price-desc">Price · high to low</option>
+              <option value="rating">Rating</option>
+            </select>
+          </label>
+          <label className="flex min-h-10 items-center gap-2 rounded-pill border border-slate-200 bg-white px-3 text-sm">
+            <span className="text-slate-500">Price</span>
+            <select
+              className="bg-transparent outline-none"
+              value={priceBand}
+              onChange={(e) => setPriceBand(e.target.value as typeof priceBand)}
+            >
+              <option value="any">Any</option>
+              <option value="under8k">Under BDT 8,000</option>
+              <option value="8to20k">BDT 8,000–20,000</option>
+              <option value="over20k">Over BDT 20,000</option>
+            </select>
+          </label>
+        </div>
       </div>
       {matched.length === 0 ? (
         <div className="mt-16 flex flex-col items-center text-center">

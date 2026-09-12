@@ -9,13 +9,13 @@ import { useAtlas } from "@/context/AtlasContext";
 import { getListing, makeBookingRef } from "@/lib/data";
 import { priceForListing } from "@/lib/pricing";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
-import type { Category } from "@/lib/types";
+import type { Audience, Category } from "@/lib/types";
 
 const METHODS = ["bKash", "Nagad", "Visa/Mastercard", "Bank transfer"] as const;
 
 export default function BookClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, addBooking } = useAtlas();
+  const { search, setSearch, setAudience, addBooking } = useAtlas();
   const router = useRouter();
   const [step, setStep] = useState(2);
   const [name, setName] = useState("");
@@ -114,14 +114,69 @@ export default function BookClient({ category, slug }: { category: Category; slu
           <section className="rounded-card border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-coral text-sm font-bold text-white">1</span>
-              <div>
-                <p className="font-medium">Dates & guests</p>
-                <p className="text-sm text-slate-500">
-                  {formatShortRange(search.from, search.to)} · {search.audience} · {search.adults} adult{search.adults > 1 ? "s" : ""}
-                  {search.children ? `, ${search.children} child` : ""}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">Change dates from Search on the listing.</p>
-              </div>
+              <p className="font-medium">Dates & guests</p>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-medium">
+                From
+                <input
+                  type="date"
+                  className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                  value={search.from}
+                  onChange={(e) => setSearch((s) => ({ ...s, from: e.target.value }))}
+                />
+              </label>
+              <label className="text-sm font-medium">
+                To
+                <input
+                  type="date"
+                  className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                  value={search.to}
+                  onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
+                />
+              </label>
+              <label className="text-sm font-medium sm:col-span-2">
+                Who
+                <select
+                  className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                  value={search.audience}
+                  onChange={(e) => setAudience(e.target.value as Audience)}
+                >
+                  <option value="Single">Single · 1 adult</option>
+                  <option value="Family">Family</option>
+                  <option value="Corporate">Corporate · 1 adult</option>
+                </select>
+              </label>
+              {search.audience === "Family" && (
+                <>
+                  <label className="text-sm font-medium">
+                    Adults
+                    <input
+                      type="number"
+                      min={1}
+                      max={8}
+                      className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                      value={search.adults}
+                      onChange={(e) =>
+                        setSearch((s) => ({ ...s, adults: Math.min(8, Math.max(1, Number(e.target.value) || 1)) }))
+                      }
+                    />
+                  </label>
+                  <label className="text-sm font-medium">
+                    Children
+                    <input
+                      type="number"
+                      min={0}
+                      max={6}
+                      className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
+                      value={search.children}
+                      onChange={(e) =>
+                        setSearch((s) => ({ ...s, children: Math.min(6, Math.max(0, Number(e.target.value) || 0)) }))
+                      }
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </section>
 

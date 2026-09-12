@@ -47,7 +47,7 @@ export default function ConfirmClient({ id }: { id: string }) {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-slate-500">Total paid</p>
+                <p className="text-slate-500">Demo total</p>
                 <p className="text-lg font-semibold">{formatMoney(booking.total)}</p>
                 <p className="font-mono text-xs text-slate-500">{booking.ref}</p>
               </div>

@@ -15,6 +15,33 @@ const CATS = [
   { href: "/recreation", label: "Recreation", cat: "recreation" as Category },
 ] as const;
 
+const DESTINATIONS = [
+  {
+    name: "Cox's Bazar",
+    blurb: "Beach stays & day trips",
+    image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=80",
+    href: "/stays?location=Cox%27s%20Bazar",
+  },
+  {
+    name: "Sylhet",
+    blurb: "Tea country escapes",
+    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80",
+    href: "/day-trips?location=Sylhet",
+  },
+  {
+    name: "Saint Martin",
+    blurb: "Island recreation",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    href: "/recreation?location=Saint%20Martin",
+  },
+  {
+    name: "Chattogram",
+    blurb: "City & coast",
+    image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=900&q=80",
+    href: "/stays?location=Chattogram",
+  },
+] as const;
+
 export default function HomePage() {
   const { search, setCategory } = useAtlas();
   const featured = featuredListings();
@@ -54,6 +81,28 @@ export default function HomePage() {
             {c.label}
           </button>
         ))}
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+        <h2 className="font-display text-2xl text-slate-900">Popular destinations</h2>
+        <p className="mt-1 text-sm text-slate-500">Jump into a place — honest inventory, all-in BDT.</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {DESTINATIONS.map((d) => (
+            <Link
+              key={d.name}
+              href={d.href}
+              className="group overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft"
+            >
+              <div className="relative aspect-[4/3]">
+                <Image src={d.image} alt={d.name} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" sizes="25vw" />
+              </div>
+              <div className="p-3">
+                <p className="font-medium text-slate-900">{d.name}</p>
+                <p className="text-sm text-slate-500">{d.blurb}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {featured.length > 0 && (

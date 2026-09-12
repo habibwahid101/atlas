@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAtlas } from "@/context/AtlasContext";
 import type { Audience, Category } from "@/lib/types";
@@ -11,17 +11,18 @@ export function SearchPill({
   category,
 }: {
   compact?: boolean;
-  /** Override search category for this submit (e.g. home chip). */
   category?: Category;
 }) {
   const { search, setSearch, setAudience } = useAtlas();
   const router = useRouter();
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
+  const [whoOpen, setWhoOpen] = useState(false);
   const targetCategory = category || search.category || "stays";
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    setWhoOpen(false);
     const q = new URLSearchParams({
       location: search.location,
       from: search.from,
@@ -39,10 +40,28 @@ export function SearchPill({
     fromRef.current?.click();
   }
 
+  function whoLabel() {
+    if (search.audience === "Family") {
+      return `Family · ${search.adults} adult${search.adults > 1 ? "s" : ""}, ${search.children} child${search.children === 1 ? "" : "ren"}`;
+    }
+    if (search.audience === "Corporate") return "Corporate · 1 adult";
+    return "Single · 1 adult";
+  }
+
+  function bump(field: "adults" | "children", delta: number) {
+    setSearch((s) => {
+      if (s.audience !== "Family") return s;
+      const next = { ...s };
+      if (field === "adults") next.adults = Math.min(8, Math.max(1, s.adults + delta));
+      else next.children = Math.min(6, Math.max(0, s.children + delta));
+      return next;
+    });
+  }
+
   return (
     <form
       onSubmit={submit}
-      className={`flex w-full flex-col gap-2 rounded-card bg-white p-2 shadow-soft sm:flex-row sm:items-center sm:rounded-pill sm:p-2 ${
+      className={`relative flex w-full flex-col gap-2 rounded-card bg-white p-2 shadow-soft sm:flex-row sm:items-center sm:rounded-pill sm:p-2 ${
         compact ? "" : "sm:max-w-3xl"
       }`}
     >
@@ -71,8 +90,7 @@ export function SearchPill({
               toRef.current?.focus();
               toRef.current?.click();
             }, 0);
-          }
-          }
+          }}
         />
         <input
           ref={toRef}
@@ -84,20 +102,46 @@ export function SearchPill({
         />
       </button>
       <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-      <label className="flex flex-1 flex-col px-3 py-2">
+      <div className="relative flex flex-1 flex-col px-3 py-2">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Who</span>
-        <select
-          className="bg-transparent text-sm outline-none"
-          value={search.audience}
-          onChange={(e) => setAudience(e.target.value as Audience)}
+        <button
+          type="button"
+          className="text-left text-sm text-slate-800 outline-none"
+          aria-expanded={whoOpen}
+          onClick={() => setWhoOpen((v) => !v)}
         >
-          <option value="Single">Single · 1 adult</option>
-          <option value="Family">
-            Family · {search.adults} adults, {search.children} child
-          </option>
-          <option value="Corporate">Corporate · 1 adult</option>
-        </select>
-      </label>
+          {whoLabel()}
+        </button>
+        {whoOpen && (
+          <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-card border border-slate-200 bg-white p-3 shadow-soft">
+            <label className="block text-xs font-semibold text-slate-500">Lens</label>
+            <select
+              className="mt-1 min-h-11 w-full rounded-xl border border-slate-200 px-2 text-sm"
+              value={search.audience}
+              onChange={(e) => setAudience(e.target.value as Audience)}
+            >
+              <option value="Single">Single</option>
+              <option value="Family">Family</option>
+              <option value="Corporate">Corporate</option>
+            </select>
+            {search.audience === "Family" ? (
+              <div className="mt-3 space-y-3">
+                <Stepper label="Adults" value={search.adults} onDec={() => bump("adults", -1)} onInc={() => bump("adults", 1)} />
+                <Stepper label="Children" value={search.children} onDec={() => bump("children", -1)} onInc={() => bump("children", 1)} />
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-slate-500">Guest count is fixed at 1 adult for this lens.</p>
+            )}
+            <button
+              type="button"
+              className="mt-3 min-h-10 w-full rounded-pill bg-coral text-sm font-semibold text-white"
+              onClick={() => setWhoOpen(false)}
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
       <button
         type="submit"
         className="inline-flex min-h-11 items-center justify-center rounded-pill bg-coral px-6 text-sm font-semibold text-white hover:bg-coral-700"
@@ -105,5 +149,32 @@ export function SearchPill({
         Search
       </button>
     </form>
+  );
+}
+
+function Stepper({
+  label,
+  value,
+  onDec,
+  onInc,
+}: {
+  label: string;
+  value: number;
+  onDec: () => void;
+  onInc: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm text-slate-700">{label}</span>
+      <div className="flex items-center gap-2">
+        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200" onClick={onDec} aria-label={`Fewer ${label}`}>
+          −
+        </button>
+        <span className="w-6 text-center text-sm font-medium">{value}</span>
+        <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200" onClick={onInc} aria-label={`More ${label}`}>
+          +
+        </button>
+      </div>
+    </div>
   );
 }

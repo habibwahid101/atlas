@@ -12,7 +12,8 @@ import { notFound } from "next/navigation";
 
 export default function DetailClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, addCompare } = useAtlas();
+  const { search, setSearch, addCompare } = useAtlas();
+  const [editDates, setEditDates] = useState(false);
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const touchX = useRef<number | null>(null);
@@ -87,7 +88,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
             sizes="100vw"
           />
         </button>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1">
           {thumbs.map((src, i) => {
             const isLastOverlay = i === 4 && extra > 0;
             return (
@@ -181,8 +182,36 @@ export default function DetailClient({ category, slug }: { category: Category; s
         </div>
 
         <aside className="h-fit rounded-card border border-slate-200 bg-white p-5 shadow-soft lg:sticky lg:top-24">
-          <p className="text-sm text-slate-500">Dates</p>
-          <p className="font-medium">{formatShortRange(search.from, search.to)}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-slate-500">Dates</p>
+            <button type="button" className="text-xs font-medium text-coral" onClick={() => setEditDates((v) => !v)}>
+              {editDates ? "Done" : "Change"}
+            </button>
+          </div>
+          {editDates ? (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <label className="text-xs text-slate-500">
+                From
+                <input
+                  type="date"
+                  className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-2 text-sm"
+                  value={search.from}
+                  onChange={(e) => setSearch((s) => ({ ...s, from: e.target.value }))}
+                />
+              </label>
+              <label className="text-xs text-slate-500">
+                To
+                <input
+                  type="date"
+                  className="mt-1 min-h-10 w-full rounded-xl border border-slate-200 px-2 text-sm"
+                  value={search.to}
+                  onChange={(e) => setSearch((s) => ({ ...s, to: e.target.value }))}
+                />
+              </label>
+            </div>
+          ) : (
+            <p className="font-medium">{formatShortRange(search.from, search.to)}</p>
+          )}
           <p className="mt-3 text-sm text-slate-500">Guests</p>
           <p className="font-medium">
             {search.audience} · {search.adults} adult{search.adults > 1 ? "s" : ""}
@@ -292,7 +321,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
               ›
             </button>
           </div>
-          <div className="flex justify-center gap-2 overflow-x-auto px-4 py-4">
+          <div className="no-scrollbar flex justify-center gap-2 overflow-x-auto px-4 py-4">
             {listing.images.map((src, i) => (
               <button
                 key={`lb-${src}-${i}`}

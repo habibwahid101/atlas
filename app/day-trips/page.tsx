@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import BrowsePage from "@/components/BrowsePage";
+import { BrowseSkeleton } from "@/components/Skeleton";
+
+export const metadata: Metadata = {
+  title: "Day trips · ATLAS",
+  description: "Browse Bangladesh day trips with all-in BDT pricing.",
+};
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="p-8">Loading…</div>}>
+    <Suspense fallback={<BrowseSkeleton />}>
       <BrowsePage category="day-trips" />
     </Suspense>
   );
