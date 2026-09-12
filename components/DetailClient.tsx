@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DatesGuestsSheet } from "@/components/DatesGuestsSheet";
+import { LocationMap } from "@/components/LocationMap";
 import { ShareSheet } from "@/components/ShareSheet";
 import { IconClose } from "@/components/Icons";
 import { BLUR_DATA_URL } from "@/lib/utils";
@@ -241,29 +242,9 @@ export default function DetailClient({ category, slug }: { category: Category; s
             </div>
           </section>
 
-          <section className="mt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Location</h2>
-            <div className="mt-3 overflow-hidden rounded-card border border-slate-200 bg-stone-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://staticmap.openstreetmap.de/staticmap.php?center=${listing.lat},${listing.lng}&zoom=13&size=600x300&markers=${listing.lat},${listing.lng},red-pushpin`}
-                alt={`Map of ${listing.place}, Bangladesh`}
-                width={600}
-                height={300}
-                className="h-auto w-full object-cover"
-                loading="lazy"
-              />
-            </div>
-            <p className="mt-2 text-sm text-slate-600">{listing.place}, Bangladesh</p>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${listing.lat},${listing.lng}`)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-coral hover:underline"
-            >
-              Get directions
-            </a>
-          </section>
+          {typeof listing.lat === "number" && typeof listing.lng === "number" ? (
+            <LocationMap lat={listing.lat} lng={listing.lng} place={listing.place} />
+          ) : null}
 
           {notes && notes.length > 0 && (
             <div className="mt-6 rounded-card border border-slate-200 bg-white p-4">

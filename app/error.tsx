@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Keep recovery UI quiet in production; digest helps support.
+    if (process.env.NODE_ENV === "development") {
+      console.error(error);
+    }
+  }, [error]);
+
   return (
     <div className="mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
       <p className="font-display text-2xl tracking-wide text-slate-900">ATLAS</p>
@@ -16,7 +25,13 @@ export default function Error({
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
-          onClick={() => reset()}
+          onClick={() => {
+            try {
+              reset();
+            } catch {
+              window.location.assign("/");
+            }
+          }}
           className="min-h-11 rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white hover:bg-coral-700"
         >
           Try again
