@@ -22,14 +22,15 @@ export function CompareTray() {
 
   if (!compare.length) return null;
 
-  const majority = compare.reduce<Record<string, number>>((acc, l) => {
-    acc[l.category] = (acc[l.category] || 0) + 1;
-    return acc;
-  }, {});
-  const topCat = Object.entries(majority).sort((a, b) => b[1] - a[1])[0]?.[0] || "stays";
+  const cats = new Set(compare.map((l) => l.category));
   const compareTitle =
-    topCat === "day-trips" ? "Compare day trips" : topCat === "recreation" ? "Compare recreation" : "Compare stays";
-
+    cats.size > 1
+      ? "Compare"
+      : cats.has("day-trips")
+        ? "Compare day trips"
+        : cats.has("recreation")
+          ? "Compare recreation"
+          : "Compare stays";
 
   return (
     <>
