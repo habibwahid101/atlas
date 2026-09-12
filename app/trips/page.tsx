@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
 import { formatMoney, formatShortRange } from "@/lib/dates";
 
@@ -12,13 +12,31 @@ export default function TripsPage() {
   const { bookings, cancelBooking } = useAtlas();
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const list = useMemo(() => bookings.filter((b) => b.status === tab), [bookings, tab]);
   const pending = bookings.find((b) => b.id === confirmId);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!confirmId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setConfirmId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [confirmId]);
 
   function confirmCancel() {
     if (!confirmId) return;
     cancelBooking(confirmId);
     setConfirmId(null);
+    setTab("cancelled");
+    setToast("Booking cancelled");
   }
 
   return (
@@ -93,14 +111,28 @@ export default function TripsPage() {
       )}
 
       {confirmId && pending && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
-          <div className="w-full max-w-md rounded-card bg-white p-5 shadow-soft">
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cancel-title"
+          onClick={() => setConfirmId(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-card bg-white p-5 shadow-soft"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 id="cancel-title" className="font-display text-xl text-slate-900">
               Cancel this booking?
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              {pending.title} · {formatShortRange(pending.from, pending.to)}. This demo cancel is immediate and cannot be undone here.
+              {pending.title} · {formatShortRange(pending.from, pending.to)}
             </p>
+            {pending.cancelUntil && (
+              <p className="mt-2 text-sm text-emerald-700">
+                Free cancellation until {formatShortRange(pending.cancelUntil, pending.cancelUntil).split("–")[0]}.
+              </p>
+            )}
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
@@ -114,10 +146,16 @@ export default function TripsPage() {
                 className="min-h-11 rounded-pill bg-coral px-4 text-sm font-semibold text-white hover:bg-coral-700"
                 onClick={confirmCancel}
               >
-                Yes, cancel
+                Cancel booking
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-pill bg-slate-900 px-4 py-2 text-sm text-white shadow-soft">
+          {toast}
         </div>
       )}
     </div>

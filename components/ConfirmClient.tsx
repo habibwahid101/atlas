@@ -26,7 +26,7 @@ export default function ConfirmClient({ id }: { id: string }) {
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">✓</div>
         <div>
           <h1 className="font-display text-3xl text-slate-900">You’re booked.</h1>
-          <p className="mt-1 text-slate-600">Confirmation sent to {booking.guestEmail}.</p>
+          <p className="mt-1 text-slate-600">Save this page or download your voucher. (Demo booking — no charge.)</p>
         </div>
       </div>
 

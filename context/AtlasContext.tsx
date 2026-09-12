@@ -18,9 +18,6 @@ type AtlasContextValue = {
   cancelBooking: (id: string) => void;
   compareOpen: boolean;
   setCompareOpen: (v: boolean) => void;
-  savedIds: string[];
-  toggleSaved: (id: string) => void;
-  isSaved: (id: string) => boolean;
 };
 
 const AtlasContext = createContext<AtlasContextValue | null>(null);
@@ -46,7 +43,6 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [search, setSearch] = useState<SearchState>(defaultSearch);
   const [compare, setCompare] = useState<Listing[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -55,14 +51,12 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       const s = localStorage.getItem("atlas-search");
       const c = localStorage.getItem("atlas-compare");
       const b = localStorage.getItem("atlas-bookings");
-      const v = localStorage.getItem("atlas-saved");
       if (s) {
         const parsed = JSON.parse(s);
         setSearch({ ...defaultSearch, ...parsed, category: parsed.category || "stays" });
       }
       if (c) setCompare(JSON.parse(c));
       if (b) setBookings(JSON.parse(b));
-      if (v) setSavedIds(JSON.parse(v));
     } catch {}
     setHydrated(true);
   }, []);
@@ -84,11 +78,6 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     localStorage.setItem("atlas-bookings", JSON.stringify(bookings));
   }, [bookings, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem("atlas-saved", JSON.stringify(savedIds));
-  }, [savedIds, hydrated]);
 
   const value = useMemo<AtlasContextValue>(
     () => ({
@@ -112,12 +101,8 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
         setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))),
       compareOpen,
       setCompareOpen,
-      savedIds,
-      toggleSaved: (id) =>
-        setSavedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
-      isSaved: (id) => savedIds.includes(id),
     }),
-    [search, compare, bookings, compareOpen, savedIds]
+    [search, compare, bookings, compareOpen]
   );
 
   return <AtlasContext.Provider value={value}>{children}</AtlasContext.Provider>;

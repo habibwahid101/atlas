@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ListingCard } from "@/components/ListingCard";
 import { FilterChips, type Filters } from "@/components/FilterChips";
 import { byCategory } from "@/lib/data";
@@ -15,22 +15,30 @@ const TITLES: Record<Category, string> = {
   recreation: "Recreation",
 };
 
+const EMPTY_HEAD: Record<Category, (loc: string) => string> = {
+  stays: (loc) => (loc ? `No stays in ${loc}` : "No results"),
+  "day-trips": (loc) => (loc ? `No day trips in ${loc}` : "No results"),
+  recreation: (loc) => (loc ? `No recreation in ${loc}` : "No results"),
+};
+
+const emptyFilters: Filters = {
+  rating45: false,
+  freeCancel: false,
+  lensFit: false,
+  beachfront: false,
+  durationShort: false,
+};
+
 export default function BrowsePage({ category }: { category: Category }) {
   const params = useSearchParams();
+  const router = useRouter();
   const { search, setSearch, setAudience, setCategory } = useAtlas();
   const locationParam = params.get("location");
   const location = (locationParam ?? "").trim();
   const who = (params.get("who") as Audience) || search.audience;
-  /** Only URL location counts — never silent-fallback to all inventory when a query misses. */
   const locationQueried = locationParam !== null && location.length > 0;
 
-  const [filters, setFilters] = useState<Filters>({
-    rating45: false,
-    freeCancel: false,
-    lensFit: false,
-    beachfront: false,
-    durationShort: false,
-  });
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
 
   useEffect(() => {
     setCategory(category);
@@ -51,7 +59,7 @@ export default function BrowsePage({ category }: { category: Category }) {
 
   const matched = useMemo(() => {
     let list = byCategory(category);
-    if (locationQueried && location.trim()) {
+    if (locationQueried) {
       const q = location.toLowerCase();
       list = list.filter(
         (l) => l.place.toLowerCase().includes(q) || l.location.toLowerCase().includes(q)
@@ -69,18 +77,16 @@ export default function BrowsePage({ category }: { category: Category }) {
     return list;
   }, [category, location, locationQueried, filters, who]);
 
-  const emptyCopy = locationQueried
-    ? `No ${TITLES[category].toLowerCase()} match “${location.trim()}”. Clear location or try another place.`
-    : category === "stays"
-      ? "No stays for these dates. Clear filters or change dates."
-      : "No trips for these dates. Clear filters or change dates.";
+  function clearFilters() {
+    setFilters(emptyFilters);
+    setSearch((s) => ({ ...s, location: "" }));
+    router.push(`/${category}`);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <h1 className="font-display text-3xl text-slate-900">
-        {locationQueried && location.trim()
-          ? `${TITLES[category]} in ${location.trim()}`
-          : TITLES[category]}
+        {locationQueried ? `${TITLES[category]} in ${location}` : TITLES[category]}
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         {matched.length} {TITLES[category].toLowerCase()} · {who}
@@ -89,10 +95,18 @@ export default function BrowsePage({ category }: { category: Category }) {
         <FilterChips category={category} audience={who} filters={filters} setFilters={setFilters} />
       </div>
       {matched.length === 0 ? (
-        <div className="mt-12 space-y-4 text-slate-600">
-          <p>{emptyCopy}</p>
-          <Link href={`/${category}`} className="inline-flex min-h-11 items-center text-sm font-medium text-coral">
-            Clear search and show all {TITLES[category].toLowerCase()}
+        <div className="mt-16 flex flex-col items-center text-center">
+          <h2 className="font-display text-2xl text-slate-900">{EMPTY_HEAD[category](location)}</h2>
+          <p className="mt-2 max-w-md text-sm text-slate-600">Try another place or clear filters.</p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="mt-6 min-h-11 rounded-pill bg-coral px-5 text-sm font-semibold text-white hover:bg-coral-700"
+          >
+            Clear filters
+          </button>
+          <Link href="/" className="mt-3 min-h-11 text-sm font-medium text-slate-600 hover:text-slate-900">
+            Change search
           </Link>
         </div>
       ) : (

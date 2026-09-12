@@ -38,7 +38,6 @@ export default function DocClient({ id, kind }: { id: string; kind: "voucher" | 
           <li>Service: {formatMoney(b.breakdown.service)}</li>
           <li>Tax: {formatMoney(b.breakdown.tax)}</li>
         </ul>
-        <p className="pt-4 text-xs text-slate-500">Host contact appears on this voucher only. No in-app chat in v1.</p>
       </div>
     </div>
   );

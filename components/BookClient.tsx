@@ -112,19 +112,17 @@ export default function BookClient({ category, slug }: { category: Category; slu
 
         <div className="space-y-3">
           <section className="rounded-card border border-slate-200 bg-white p-4">
-            <button type="button" className="flex w-full items-center justify-between text-left" onClick={() => setStep(1)}>
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-coral text-sm font-bold text-white">1</span>
-                <div>
-                  <p className="font-medium">Dates & guests</p>
-                  <p className="text-sm text-slate-500">
-                    {formatShortRange(search.from, search.to)} · {search.audience} · {search.adults} adult{search.adults > 1 ? "s" : ""}
-                    {search.children ? `, ${search.children} child` : ""}
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-coral text-sm font-bold text-white">1</span>
+              <div>
+                <p className="font-medium">Dates & guests</p>
+                <p className="text-sm text-slate-500">
+                  {formatShortRange(search.from, search.to)} · {search.audience} · {search.adults} adult{search.adults > 1 ? "s" : ""}
+                  {search.children ? `, ${search.children} child` : ""}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">Change dates from Search on the listing.</p>
               </div>
-              <span className="text-sm text-coral">Edit</span>
-            </button>
+            </div>
           </section>
 
           <section className="rounded-card border border-slate-200 bg-white p-4">
@@ -178,7 +176,7 @@ export default function BookClient({ category, slug }: { category: Category; slu
               <div className="mt-4">
                 <p className="mb-3 text-sm text-slate-500">Choose your preferred payment method</p>
                 <p className="mb-3 rounded-xl bg-sand-50 px-3 py-2 text-xs text-slate-600">
-                  Demo payment — you won’t be charged. No real money moves in this prototype.
+                  Demo payment — you won’t be charged.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {METHODS.map((m) => (
@@ -202,12 +200,11 @@ export default function BookClient({ category, slug }: { category: Category; slu
                   onClick={pay}
                   className="mt-4 flex min-h-11 w-full items-center justify-center rounded-pill bg-coral text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Pay BDT {price.total.toLocaleString("en-BD")} (demo)
+                  Pay BDT {price.total.toLocaleString("en-BD")}
                 </button>
-                <p className="mt-2 text-center text-xs text-slate-500">You won’t be charged.</p>
                 {cancelUntil && (
                   <p className="mt-2 text-center text-xs text-emerald-700">
-                    Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}. You will get a voucher by email.
+                    Free cancellation until {formatShortRange(cancelUntil, cancelUntil).split("–")[0]}. Download your voucher after payment.
                   </p>
                 )}
                 {corporate && (

@@ -277,9 +277,6 @@ export function getListing(category: string, slug: string) {
   return LISTINGS.find((l) => l.category === category && l.slug === slug);
 }
 
-export function getListingById(id: string) {
-  return LISTINGS.find((l) => l.id === id);
-}
 
 export function byCategory(category: string) {
   return LISTINGS.filter((l) => l.category === category);

@@ -2,20 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
 import { getListing } from "@/lib/data";
 import { priceForListing } from "@/lib/pricing";
-import { reviewsForListing } from "@/lib/reviews";
 import { addDays, formatMoney, formatShortRange, nightsBetween } from "@/lib/dates";
 import type { Category } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export default function DetailClient({ category, slug }: { category: Category; slug: string }) {
   const listing = getListing(category, slug);
-  const { search, addCompare, isSaved, toggleSaved } = useAtlas();
+  const { search, addCompare } = useAtlas();
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const touchX = useRef<number | null>(null);
 
   useEffect(() => {
     if (!lightbox) return;
@@ -31,13 +31,11 @@ export default function DetailClient({ category, slug }: { category: Category; s
 
   if (!listing) return notFound();
 
-  const reviews = reviewsForListing(listing);
   const guests = search.adults + search.children;
   const price = priceForListing(listing, search.from, search.to, guests);
   const cancelUntil = listing.freeCancellation
     ? addDays(search.from, -listing.cancelUntilDays)
     : null;
-  const saved = isSaved(listing.id);
 
   let blockReason: string | null = null;
   if (search.audience === "Family" && listing.kidsAllowed === false) {
@@ -55,87 +53,89 @@ export default function DetailClient({ category, slug }: { category: Category; s
         ? listing.corporateNotes
         : listing.soloNotes;
 
+  const extra = Math.max(0, listing.images.length - 5);
   const thumbs = listing.images.slice(0, 5);
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchX.current = e.touches[0]?.clientX ?? null;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchX.current == null) return;
+    const x = e.changedTouches[0]?.clientX ?? touchX.current;
+    const dx = x - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) setActive((i) => (i + 1) % listing!.images.length);
+    else setActive((i) => (i - 1 + listing!.images.length) % listing!.images.length);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <div className="grid gap-3 md:grid-cols-4">
+      <div>
         <button
           type="button"
-          className="relative aspect-[16/10] overflow-hidden rounded-card text-left md:col-span-4 md:aspect-[21/9]"
+          className="relative aspect-[16/10] w-full overflow-hidden rounded-card text-left sm:aspect-[21/9]"
           onClick={() => setLightbox(true)}
           aria-label="Open photo gallery"
         >
           <Image
             src={listing.images[active] || listing.images[0]}
-            alt={listing.title}
+            alt={`${listing.title} — photo ${active + 1}`}
             fill
             className="object-cover"
             priority
             sizes="100vw"
           />
         </button>
-        {thumbs.map((src, i) => (
-          <button
-            key={`${src}-${i}`}
-            type="button"
-            className={`relative hidden aspect-[4/3] overflow-hidden rounded-xl ring-offset-2 md:block ${
-              active === i ? "ring-2 ring-coral" : ""
-            }`}
-            onClick={() => {
-              setActive(i);
-              if (i === 4 && listing.images.length > 5) setLightbox(true);
-            }}
-            aria-label={`Show photo ${i + 1}`}
-            aria-pressed={active === i}
-          >
-            <Image src={src} alt="" fill className="object-cover" sizes="25vw" />
-            {i === 4 && listing.images.length > 5 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-medium text-white">
-                +{listing.images.length - 5}
-              </div>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Mobile thumbs */}
-      <div className="mt-3 flex gap-2 overflow-x-auto md:hidden">
-        {listing.images.map((src, i) => (
-          <button
-            key={`${src}-m-${i}`}
-            type="button"
-            className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-lg ${
-              active === i ? "ring-2 ring-coral" : ""
-            }`}
-            onClick={() => setActive(i)}
-            aria-label={`Show photo ${i + 1}`}
-          >
-            <Image src={src} alt="" fill className="object-cover" sizes="80px" />
-          </button>
-        ))}
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {thumbs.map((src, i) => {
+            const isLastOverlay = i === 4 && extra > 0;
+            return (
+              <button
+                key={`${src}-${i}`}
+                type="button"
+                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-lg sm:h-20 sm:w-28 ${
+                  active === i && !isLastOverlay ? "ring-2 ring-coral ring-offset-2" : ""
+                }`}
+                onClick={() => {
+                  if (isLastOverlay) {
+                    setActive(i);
+                    setLightbox(true);
+                  } else {
+                    setActive(i);
+                  }
+                }}
+                aria-label={
+                  isLastOverlay
+                    ? `Open gallery, ${extra} more photos`
+                    : `Show ${listing.title} — photo ${i + 1}`
+                }
+                aria-pressed={active === i}
+              >
+                <Image
+                  src={src}
+                  alt={`${listing.title} — photo ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="112px"
+                />
+                {isLastOverlay && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-sm font-medium text-white">
+                    +{extra}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
         <div>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="font-display text-3xl text-slate-900">{listing.title}</h1>
-              <p className="mt-1 text-slate-500">
-                {listing.location} · ★ {listing.rating.toFixed(1)} · {reviews.length} review
-                {reviews.length === 1 ? "" : "s"}
-              </p>
-            </div>
-            <button
-              type="button"
-              aria-label={saved ? "Remove from Saved" : "Save"}
-              aria-pressed={saved}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-lg text-slate-700"
-              onClick={() => toggleSaved(listing.id)}
-            >
-              {saved ? "♥" : "♡"}
-            </button>
-          </div>
+          <h1 className="font-display text-3xl text-slate-900">{listing.title}</h1>
+          <p className="mt-1 text-slate-500">
+            {listing.location} · ★ {listing.rating.toFixed(1)}
+          </p>
           <p className="mt-4 max-w-2xl text-slate-700">{listing.description}</p>
 
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">What&apos;s included</h2>
@@ -159,24 +159,6 @@ export default function DetailClient({ category, slug }: { category: Category; s
               </ul>
             </div>
           )}
-
-          <section className="mt-10" id="reviews">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Reviews · {reviews.length}
-            </h2>
-            <ul className="mt-4 space-y-4">
-              {reviews.map((r) => (
-                <li key={r.id} className="rounded-card border border-slate-200 bg-white p-4">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="font-medium text-slate-900">{r.author}</p>
-                    <p className="text-xs text-slate-500">{r.date}</p>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-600">★ {r.rating.toFixed(1)}</p>
-                  <p className="mt-2 text-sm text-slate-700">{r.text}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
 
           <button
             type="button"
@@ -267,6 +249,8 @@ export default function DetailClient({ category, slug }: { category: Category; s
           role="dialog"
           aria-modal="true"
           aria-label="Photo gallery"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           <div className="flex items-center justify-between px-4 py-3 text-white">
             <p className="text-sm">
@@ -293,7 +277,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
             <div className="relative h-full max-h-[70vh] w-full max-w-4xl">
               <Image
                 src={listing.images[active]}
-                alt={`${listing.title} photo ${active + 1}`}
+                alt={`${listing.title} — photo ${active + 1}`}
                 fill
                 className="object-contain"
                 sizes="100vw"
@@ -317,8 +301,9 @@ export default function DetailClient({ category, slug }: { category: Category; s
                   active === i ? "ring-2 ring-white" : "opacity-70"
                 }`}
                 onClick={() => setActive(i)}
+                aria-label={`${listing.title} — photo ${i + 1}`}
               >
-                <Image src={src} alt="" fill className="object-cover" sizes="80px" />
+                <Image src={src} alt={`${listing.title} — photo ${i + 1}`} fill className="object-cover" sizes="80px" />
               </button>
             ))}
           </div>
