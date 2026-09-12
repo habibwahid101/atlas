@@ -210,9 +210,6 @@ export default function BookClient({ category, slug }: { category: Category; slu
             {step === 3 && (
               <div className="mt-4">
                 <p className="mb-3 text-sm text-slate-500">Choose your preferred payment method</p>
-                <p className="mb-3 rounded-xl bg-sand-50 px-3 py-2 text-xs font-medium text-slate-700">
-                  Demo only — no money moves. This is not a real charge.
-                </p>
                 <div className="grid grid-cols-2 gap-3">
                   {METHODS.map((m) => (
                     <button
