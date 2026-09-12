@@ -239,7 +239,7 @@ export const LISTINGS: Listing[] = [
     place: "Cox's Bazar",
     description: "Garden courtyard inn a short walk from the beach.",
     rating: 4.3,
-    reviewCount: 54,
+    reviewCount: 0,
     images: [u("photo-1522708323590-d24dbb6b0267"), u("photo-1502672260266-1c1ef2d93688")],
     included: ["Garden", "Free cancellation"],
     beachfront: false,
@@ -435,7 +435,7 @@ export const LISTINGS: Listing[] = [
     description:
       "Simple trail-side camp for hikers who want clean beds and clear pricing after the climb.",
     rating: 4.5,
-    reviewCount: 38,
+    reviewCount: 0,
     images: [
       u("photo-1486870591958-9b9d0d1dda99"),
       u("photo-1464822759023-fed622ff2c3b"),

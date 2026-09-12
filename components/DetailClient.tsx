@@ -187,7 +187,7 @@ export default function DetailClient({ category, slug }: { category: Category; s
           <p className="mt-4 max-w-2xl text-slate-700">{listing.description}</p>
 
           {hasReviews && (
-            <section className="mt-8">
+            <section className="mt-8" data-testid="guest-reviews">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Guest reviews</h2>
               <p className="mt-2 text-sm text-slate-700">
                 ★ {listing.rating.toFixed(1)} · {listing.reviewCount} reviews

@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import type { Audience, Booking, Category, Listing, SearchState } from "@/lib/types";
 import { defaultDates } from "@/lib/dates";
 import { COMPARE_CAP_MESSAGE, emitCompareCapToast } from "@/lib/compare-cap-toast";
+import { migrateBookingStatuses } from "@/lib/booking-status";
 
 type AtlasContextValue = {
   search: SearchState;
@@ -61,17 +62,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       if (c) setCompare(JSON.parse(c));
       if (b) {
         const parsed = JSON.parse(b) as Booking[];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        setBookings(
-          parsed.map((bk) => {
-            if (bk.status === "upcoming" && bk.to) {
-              const end = new Date(bk.to + "T00:00:00");
-              if (end < today) return { ...bk, status: "past" as const };
-            }
-            return bk;
-          })
-        );
+        setBookings(migrateBookingStatuses(parsed));
       }
     } catch {}
     setHydrated(true);

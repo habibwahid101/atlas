@@ -2,37 +2,64 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useAtlas } from "@/context/AtlasContext";
-import { formatShortRange, parseISO } from "@/lib/dates";
+import { useSearchParams } from "next/navigation";
+import { formatShortRange } from "@/lib/dates";
 import { guestSummary } from "@/lib/copy";
+import { effectiveBookingStatus, startOfLocalToday, type TripTab } from "@/lib/booking-status";
 import type { Booking } from "@/lib/types";
 
-type Tab = "upcoming" | "past" | "cancelled";
+type Tab = TripTab;
 
-function effectiveStatus(b: Booking, today: Date): Tab {
-  if (b.status === "cancelled") return "cancelled";
-  if (b.status === "past") return "past";
-  // upcoming in storage, but ended → past
-  const end = parseISO(b.to);
-  if (end < today) return "past";
-  return "upcoming";
+function makePastVerifyBooking(): Booking {
+  return {
+    id: "qa-past-verify",
+    ref: "ATLAS-QA-PAST",
+    listingId: "8",
+    slug: "kolatoli-garden-inn",
+    type: "stays",
+    title: "Kolatoli Garden Inn",
+    location: "Kolatoli, Cox's Bazar",
+    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80",
+    from: "2026-09-01",
+    to: "2026-09-03",
+    audience: "Family",
+    adults: 2,
+    children: 1,
+    guestName: "QA Past Guest",
+    guestEmail: "qa@atlas.demo",
+    guestMobile: "+880 1700000000",
+    paymentMethod: "bKash",
+    breakdown: { base: 10000, service: 500, tax: 500, total: 11000, nights: 2 },
+    total: 11000,
+    createdAt: "2026-08-20T00:00:00.000Z",
+    status: "upcoming",
+    cancelUntil: "2026-08-30",
+  };
 }
 
-export default function TripsPage() {
-  const { bookings, cancelBooking } = useAtlas();
+function TripsClient() {
+  const { bookings, cancelBooking, addBooking } = useAtlas();
+  const params = useSearchParams();
   const [tab, setTab] = useState<Tab>("upcoming");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, []);
+  const today = useMemo(() => startOfLocalToday(), []);
+
+  useEffect(() => {
+    if (params.get("verifyPast") !== "1") return;
+    if (bookings.some((b) => b.id === "qa-past-verify" || effectiveBookingStatus(b, today) === "past")) {
+      setTab("past");
+      return;
+    }
+    addBooking(makePastVerifyBooking());
+    setTab("past");
+  }, [params, bookings, addBooking, today]);
 
   const list = useMemo(
-    () => bookings.filter((b) => effectiveStatus(b, today) === tab),
+    () => bookings.filter((b) => effectiveBookingStatus(b, today) === tab),
     [bookings, tab, today]
   );
   const pending = bookings.find((b) => b.id === confirmId);
@@ -86,7 +113,7 @@ export default function TripsPage() {
         ))}
       </div>
       {list.length === 0 ? (
-        <div className="mt-12 text-center text-slate-600">
+        <div className="mt-12 text-center text-slate-600" data-testid={`trips-empty-${tab}`}>
           <p>{emptyCopy}</p>
           <Link href="/stays" className="mt-4 inline-flex rounded-pill bg-coral px-5 py-3 text-sm font-semibold text-white">
             Browse ATLAS
@@ -95,9 +122,9 @@ export default function TripsPage() {
       ) : (
         <div className="mt-6 space-y-4">
           {list.map((b) => {
-            const status = effectiveStatus(b, today);
+            const status = effectiveBookingStatus(b, today);
             return (
-              <article key={b.id} className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft">
+              <article key={b.id} data-testid="trip-card" data-status={status} className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft">
                 <div className="grid sm:grid-cols-[160px_1fr]">
                   <div className="relative min-h-[140px]">
                     <Image src={b.image} alt={b.title} fill className="object-cover" sizes="160px" />
@@ -190,5 +217,14 @@ export default function TripsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function TripsPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-3xl px-4 py-8 text-sm text-slate-500">Loading trips…</div>}>
+      <TripsClient />
+    </Suspense>
   );
 }
